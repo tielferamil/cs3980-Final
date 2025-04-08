@@ -8,4 +8,6 @@
 
 3.) pip3 install pydantic
 
-4.) pip3 install fastapi
+4.) pip3 install fastapi uvicorn
+
+5.) uvicorn main:app --reload (to start up site)
