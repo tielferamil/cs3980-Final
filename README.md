@@ -1,13 +1,39 @@
-# cs3980-Final
+# cs3980-Final NutriTrak
+description here
 
-<h3>Setup commands</h3>
+## Features
+features here
 
-1.) python3 -m venv venv (On Setup)
+## Technologies Used
 
-2.) source ./venv/bin/activate
+- **Backend**: FastAPI (Python), MongoDB
+- **Frontend**: 
+  - HTML
+  - CSS
+  - JavaScript
+  - Bootstrap 5 for responsive design
+## Installation
 
-3.) pip3 install pydantic
 
-4.) pip3 install fastapi uvicorn
+```bash
+1. close this repository
+git clone https://github.com/tielferamil/cs3980-Final
 
-5.) uvicorn main:app --reload (to start up site)
+2. Create and activate a virtual environment
+# For Windows
+python -m venv venv
+venv\Scripts\activate
+
+# For macOS/Linux
+python3 -m venv venv
+source venv/bin/activate
+
+3. Install the required dependencies
+pip3 install fastapi uvicorn
+pip3 install pydantic
+
+4. Run the application
+uvicorn main:app --reload
+```
+## Demo
+picutres here
