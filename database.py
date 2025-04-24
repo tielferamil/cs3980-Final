@@ -1,5 +1,4 @@
 from pymongo import MongoClient
-from database import users_collection
 from fastapi import HTTPException
 from beanie import init_beanie
 from motor.motor_asyncio import AsyncIOMotorClient

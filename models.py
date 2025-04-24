@@ -37,4 +37,7 @@ class FoodLog(Document):
     calories: int
 
     class Settings:
-        name = "foodlogs"  # MongoDB collection name
+        name = "foodlogs"# MongoDB collection name
+
+    class Config:
+        arbitrary_types_allowed = True
