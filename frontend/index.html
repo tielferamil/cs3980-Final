@@ -29,11 +29,7 @@
                         <a class="nav-link" href="/profile">Profile</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/login">Login</a>
-                    </li>
-                    <li>
-                        <button onclick="logout()" id="logoutButton"
-                            style="position: absolute; top: 10px; right: 10px;">Sign Out</button>
+                        <button onclick="logout()" class="btn btn-outline-danger btn-sm ms-2" id="logoutButton">Sign Out</button>
                     </li>
 
                 </ul>
@@ -110,13 +106,8 @@
             </div>
         </div>
     </div>
-    <script> // logout function
-        function logout() {
-            localStorage.removeItem("token");
-            window.location.href = "/login"; // Redirect to login page
-        }
-    </script>
-    <script> // check if token exists before allowing user access
+    <script> 
+    // check if token exists before allowing user access
         if (!localStorage.getItem("token")) {
             window.location.href = "/login"; // Force back to login if no token
         }

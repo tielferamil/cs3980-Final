@@ -189,6 +189,10 @@ button, .btn {
     justify-content: center !important;
 }
 
+.authButton{
+    background-color: #2980b9 !important;
+}
+
 /* Responsive Design */
 @media (max-width: 800px) {
     .container {
