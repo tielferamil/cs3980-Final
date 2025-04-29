@@ -218,6 +218,9 @@ function logout() {
     window.location.href = "/login"; // Redirect to login page
 }
 
-//loads calorie data on page load
-fetchCalories();
+//loads calorie data on index page load only
+if (window.location.pathname === "/") {
+    fetchCalories();
+}
+
 window.logout = logout;
