@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Depends, Request
+from fastapi import FastAPI, HTTPException, Depends, Request, Body
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -6,6 +6,7 @@ from models import UserSignup, UserLogin, User, FoodItem, FoodLog
 from auth import hash_password, verify_password, create_access_token, get_current_user
 from database import init_db
 from beanie import PydanticObjectId
+from motor.motor_asyncio import AsyncIOMotorClient
 
 app = FastAPI()
 
@@ -89,15 +90,36 @@ async def log_food(food: FoodItem, user: User = Depends(get_current_user)):
     return {"message": "Food logged"}
 
 
-# Get Food Logs + Total (authenticated)
+from models import CalorieTarget  # add this
+
+# Get Food Logs + Total + target (authenticated)
 @app.get("/calories")
 async def get_calories(user: User = Depends(get_current_user)):
     logs = await FoodLog.find(FoodLog.user_id == user.id).to_list()
     total = sum(item.calories for item in logs)
-    return {"totalCalories": total, "foods": logs}
+
+    target_doc = await CalorieTarget.find_one(CalorieTarget.user_id == user.id)
+    target = target_doc.target if target_doc else 0
+
+    return {"totalCalories": total, "foods": logs, "target": target}
 
 
-# Delete Food Log by ID (optional, advanced)
+# Set daily target (authenticated)
+@app.post("/calories/target")
+async def set_target(
+    target: int = Body(...),
+    user: User = Depends(get_current_user)
+):
+    existing = await CalorieTarget.find_one(CalorieTarget.user_id == user.id)
+    if existing:
+        existing.target = target
+        await existing.save()
+    else:
+        await CalorieTarget(user_id=user.id, target=target).insert()
+    return {"message": "Target set"}
+
+
+# Delete Food Log by ID
 @app.delete("/calories/log/{log_id}")
 async def delete_log(log_id: PydanticObjectId, user: User = Depends(get_current_user)):
     log = await FoodLog.get(log_id)

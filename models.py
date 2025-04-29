@@ -1,7 +1,7 @@
 from beanie import Document
 from pydantic import BaseModel
 from typing import Optional
-from bson import ObjectId
+from beanie import PydanticObjectId
 
 
 # User document stored in MongoDB
@@ -29,10 +29,20 @@ class FoodItem(BaseModel):
     name: str
     calories: int
 
+class CalorieTarget(Document):
+    user_id: PydanticObjectId
+    target: int
+
+    class Settings:
+        name = "targets"
+
+    class Config:
+        arbitrary_types_allowed = True
+
 
 # Food log stored per user
 class FoodLog(Document):
-    user_id: ObjectId
+    user_id: PydanticObjectId
     name: str
     calories: int
 
