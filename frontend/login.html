@@ -25,7 +25,11 @@
                         onclick="togglePassword()">Show</button>
                 </div>
                 <div class="d-grid">
-                    <button type="submit" id="authButton" class="btn btn-primary">Login</button>
+                    <button type="submit" id="authButton" class="btn btn-primary">
+                        <span id="authButtonText">Login</span>
+                        <span id="loadingSpinner" class="spinner-border spinner-border-sm ms-2 d-none" role="status"
+                            aria-hidden="true"></span>
+                    </button>
                 </div>
             </form>
 
@@ -57,7 +61,7 @@
                 e.preventDefault();
                 isLogin = !isLogin;
                 document.getElementById("formTitle").textContent = isLogin ? "Login to NutriTrack" : "Sign Up for NutriTrack";
-                document.getElementById("authButton").textContent = isLogin ? "Login" : "Sign Up";
+                document.getElementById("authButtonText").textContent = isLogin ? "Login" : "Sign Up";
                 document.getElementById("toggleMessage").innerHTML = isLogin
                     ? "Don't have an account? <a href=\"#\" id=\"toggleLink\">Sign up</a>"
                     : "Already have an account? <a href=\"#\" id=\"toggleLink\">Login</a>";
@@ -71,27 +75,42 @@
             const password = document.getElementById("password").value;
             const endpoint = isLogin ? "/login" : "/signup";
 
-            const response = await fetch(endpoint, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ username, password })
-            });
+            // Show loading state
+            const button = document.getElementById("authButton");
+            const buttonText = document.getElementById("authButtonText");
+            const spinner = document.getElementById("loadingSpinner");
+            button.disabled = true;
+            spinner.classList.remove("d-none");
 
-            const data = await response.json();
+            try {
+                const response = await fetch(endpoint, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ username, password })
+                });
 
-            if (response.ok) {
-                if (isLogin) {
-                    localStorage.setItem("token", data.access_token);
-                    window.location.href = "/";
+                const data = await response.json();
+
+                if (response.ok) {
+                    if (isLogin) {
+                        localStorage.setItem("token", data.access_token);
+                        window.location.href = "/";
+                    } else {
+                        document.getElementById("authMessage").textContent = "Signup successful! You can now log in.";
+                        isLogin = true;
+                        document.getElementById("formTitle").textContent = "Login to NutriTrack";
+                        document.getElementById("authButtonText").textContent = "Login";
+                    }
                 } else {
-                    document.getElementById("authMessage").textContent = "Signup successful! You can now log in.";
-                    isLogin = true;
-                    document.getElementById("formTitle").textContent = "Login to NutriTrack";
-                    document.getElementById("authButton").textContent = "Login";
+                    document.getElementById("authMessage").textContent = data.detail || "Authentication failed";
                 }
-            } else {
-                document.getElementById("authMessage").textContent = data.detail || "Authentication failed";
+            } catch (error) {
+                document.getElementById("authMessage").textContent = "An unexpected error occurred.";
             }
+
+            // Hide loading state
+            spinner.classList.add("d-none");
+            button.disabled = false;
         });
     </script>
 
