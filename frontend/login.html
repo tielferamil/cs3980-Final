@@ -19,10 +19,18 @@
                     <input type="text" id="username" class="form-control" placeholder="Username" required />
                 </div>
                 <div class="mb-3 position-relative">
-                    <input type="password" id="password" class="form-control pe-5" placeholder="Password" required />
+                    <input type="password" id="password" class="form-control pe-5" placeholder="Password" required
+                        onkeyup="checkPasswordStrength()" />
                     <button type="button"
                         class="btn btn-sm btn-outline-secondary position-absolute top-50 end-0 translate-middle-y me-2"
                         onclick="togglePassword()">Show</button>
+                </div>
+                <!-- Password strength indicator -->
+                <div class="mb-3" id="passwordStrengthContainer" style="display: none;">
+                    <div class="progress" style="height: 5px;">
+                        <div id="passwordStrengthBar" class="progress-bar" role="progressbar" style="width: 0%"></div>
+                    </div>
+                    <small id="passwordStrengthText" class="form-text text-muted"></small>
                 </div>
                 <div class="d-grid">
                     <button type="submit" id="authButton" class="btn btn-primary">
@@ -56,6 +64,42 @@
             }
         }
 
+        function checkPasswordStrength() {
+            const password = document.getElementById("password").value;
+            const strengthBar = document.getElementById("passwordStrengthBar");
+            const strengthText = document.getElementById("passwordStrengthText");
+            const strengthContainer = document.getElementById("passwordStrengthContainer");
+
+            // Only show strength meter on signup
+            if (!isLogin && password.length > 0) {
+                strengthContainer.style.display = "block";
+
+                // Calculate strength
+                let strength = 0;
+                if (password.length > 6) strength += 20;
+                if (password.length > 10) strength += 20;
+                if (/[A-Z]/.test(password)) strength += 20;
+                if (/[0-9]/.test(password)) strength += 20;
+                if (/[^A-Za-z0-9]/.test(password)) strength += 20;
+
+                // Update UI
+                strengthBar.style.width = strength + "%";
+
+                if (strength <= 40) {
+                    strengthBar.className = "progress-bar bg-danger";
+                    strengthText.textContent = "Weak password";
+                } else if (strength <= 80) {
+                    strengthBar.className = "progress-bar bg-warning";
+                    strengthText.textContent = "Medium strength password";
+                } else {
+                    strengthBar.className = "progress-bar bg-success";
+                    strengthText.textContent = "Strong password";
+                }
+            } else {
+                strengthContainer.style.display = "none";
+            }
+        }
+
         document.addEventListener("click", function (e) {
             if (e.target && e.target.id === "toggleLink") {
                 e.preventDefault();
@@ -65,6 +109,9 @@
                 document.getElementById("toggleMessage").innerHTML = isLogin
                     ? "Don't have an account? <a href=\"#\" id=\"toggleLink\">Sign up</a>"
                     : "Already have an account? <a href=\"#\" id=\"toggleLink\">Login</a>";
+
+                // Update password strength visibility
+                checkPasswordStrength();
             }
         });
 
