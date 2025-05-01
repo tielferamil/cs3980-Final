@@ -13,13 +13,14 @@
     <nav class="navbar navbar-expand-lg navbar-light bg-light w-100 m-0">
         <div class="container-fluid justify-content-between">
             <a class="navbar-brand" href="/">NutriTrack</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
                 <ul class="navbar-nav">
                     <li class="nav-item">
-                        <a class="nav-link" aria-current="page" href="/goals">Goals</a>
+                        <a class="nav-link active" aria-current="page" href="/goals">Goals</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="/recipes">Recipes</a>
@@ -28,15 +29,177 @@
                         <a class="nav-link" href="/profile">Profile</a>
                     </li>
                     <li class="nav-item">
-                        <button onclick="logout()" class="btn btn-outline-danger btn-sm ms-2" id="logoutButton">Sign Out</button>
+                        <button onclick="logout()" class="btn btn-outline-danger btn-sm ms-2" id="logoutButton">Sign
+                            Out</button>
                     </li>
                 </ul>
             </div>
         </div>
     </nav>
 
-    <h1>Goals Page</h1>
-    <script src="static/main.js"></script>
+    <div class="container mt-4">
+        <h3 class="text-center mb-4">My Nutrition & Fitness Goals</h3>
+
+        <div class="row">
+            <!-- Left Column - Goal Setting -->
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Set New Goal</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="goalForm">
+                            <div class="mb-3">
+                                <label for="goalType" class="form-label">Goal Type</label>
+                                <select class="form-select" id="goalType" required>
+                                    <option value="" selected disabled>Select a goal type</option>
+                                    <option value="weight">Weight Goal</option>
+                                    <option value="nutrition">Nutrition Goal</option>
+                                    <option value="exercise">Exercise Goal</option>
+                                    <option value="water">Water Intake</option>
+                                    <option value="custom">Custom Goal</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="goalTitle" class="form-label">Goal Title</label>
+                                <input type="text" class="form-control" id="goalTitle" placeholder="Enter goal title"
+                                    required>
+                            </div>
+
+                            <div class="mb-3" id="targetValueContainer">
+                                <label for="targetValue" class="form-label">Target Value</label>
+                                <input type="number" class="form-control" id="targetValue"
+                                    placeholder="Enter target value">
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="measurementUnit" class="form-label">Measurement Unit</label>
+                                <select class="form-select" id="measurementUnit">
+                                    <option value="kg">kg</option>
+                                    <option value="lbs">lbs</option>
+                                    <option value="calories">calories</option>
+                                    <option value="grams">grams</option>
+                                    <option value="mins">minutes</option>
+                                    <option value="steps">steps</option>
+                                    <option value="sessions">sessions</option>
+                                    <option value="cups">cups</option>
+                                    <option value="ml">ml</option>
+                                    <option value="none">none</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="targetDate" class="form-label">Target Date</label>
+                                <input type="date" class="form-control" id="targetDate" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="notes" class="form-label">Notes</label>
+                                <textarea class="form-control" id="notes" rows="3"
+                                    placeholder="Additional notes or strategies to achieve this goal"></textarea>
+                            </div>
+
+                            <button type="button" class="btn btn-primary w-100" onclick="saveGoal()">Save Goal</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column - Goals Display -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">My Active Goals</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="goalsContainer">
+                            <!-- Goals will be displayed here -->
+                            <div class="text-center" id="noGoalsMessage">
+                                <p class="text-muted">No goals set yet. Create your first goal!</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mt-4">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">Progress Summary</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="progress-stats">
+                            <p><strong>Goals Completed:</strong> <span id="goalsCompleted">0</span></p>
+                            <p><strong>Goals In Progress:</strong> <span id="goalsInProgress">0</span></p>
+                            <p><strong>Overall Progress:</strong> <span id="overallProgress">0%</span></p>
+                        </div>
+                        <div class="progress mt-3">
+                            <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated"
+                                role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0"
+                                aria-valuemax="100"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Goal Details Modal -->
+    <div class="modal fade" id="goalDetailsModal" tabindex="-1" aria-labelledby="goalDetailsModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="goalDetailsModalLabel">Goal Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <h6><strong>Goal:</strong></h6>
+                        <p id="modalGoalTitle"></p>
+                    </div>
+                    <div class="mb-3">
+                        <h6><strong>Type:</strong></h6>
+                        <p id="modalGoalType"></p>
+                    </div>
+                    <div class="mb-3">
+                        <h6><strong>Target:</strong></h6>
+                        <p id="modalTargetValue"></p>
+                    </div>
+                    <div class="mb-3">
+                        <h6><strong>Target Date:</strong></h6>
+                        <p id="modalTargetDate"></p>
+                    </div>
+                    <div class="mb-3">
+                        <h6><strong>Notes:</strong></h6>
+                        <p id="modalNotes"></p>
+                    </div>
+                    <div class="mb-3">
+                        <h6><strong>Progress:</strong></h6>
+                        <div class="progress">
+                            <div id="modalProgressBar" class="progress-bar" role="progressbar" style="width: 0%"></div>
+                        </div>
+                        <p class="text-center mt-2" id="modalProgressText">0%</p>
+                    </div>
+                    <div class="mb-3">
+                        <h6><strong>Update Progress:</strong></h6>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="progressUpdate" placeholder="Current value">
+                            <button class="btn btn-outline-success" type="button" id="updateProgressBtn">Update</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="editGoalBtn">Edit</button>
+                    <button type="button" class="btn btn-danger" id="deleteGoalBtn">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/goals.js"></script>
+    <script src="/static/main.js"></script>
 </body>
 
 </html>
