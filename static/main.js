@@ -115,33 +115,93 @@ async function logFood() {
         return;
     }
 
-    let name = document.getElementById('foodName').value;
+    let name = document.getElementById('foodName').value.trim();
     name = name.charAt(0).toUpperCase() + name.slice(1);
 
-    const calories = document.getElementById('foodCalories').value;
+    if (!name) {
+        alert("Please enter a food name.");
+        return;
+    }
 
-    if (editingFoodId !== null) {
-        //if editing it sends a PUT request to update the food item
-        await updateFood(editingFoodId, name, calories);
-        editingFoodId = null; // Reset editing state
-    } else {
-        //if it is not editing, send a POST request to log a new food item
+    try {
+        const appId = '93f9f23d';
+        const appKey = 'b9ae8e8f821adc2861fa772f51e388e1';
+
+        const apiResponse = await fetch("https://trackapi.nutritionix.com/v2/natural/nutrients", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "x-app-id": appId,
+                "x-app-key": appKey
+            },
+            body: JSON.stringify({ query: name })
+        });
+
+        const nutritionData = await apiResponse.json();
+
+        let calories, fat = null, protein = null, carbs = null;
+
+        if (nutritionData.foods && nutritionData.foods.length > 0) {
+            const foodData = nutritionData.foods[0];
+            calories = Math.round(foodData.nf_calories);
+            fat = foodData.nf_total_fat;
+            protein = foodData.nf_protein;
+            carbs = foodData.nf_total_carbohydrate;
+        } else {
+            // Manual fallback if no data from API
+            const manual = prompt(`Could not find data for "${name}". Please enter calories manually:`);
+            if (!manual || isNaN(manual)) {
+                alert("Invalid calorie input.");
+                return;
+            }
+            calories = Number(manual);
+        }
+
         const response = await fetch(apiUrl + 'log', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 
-                'Authorization': 'Bearer ' + token},
-            body: JSON.stringify({ name, calories: Number(calories) })
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify({ name, calories, fat, protein, carbs })
         });
 
         if (!response.ok) {
-            alert("Failed to log food");
+            alert("Failed to log food to backend");
             return;
         }
-    }
 
-    document.getElementById('foodForm').reset();
-    fetchCalories();
+        document.getElementById('foodForm').reset();
+        fetchCalories();
+
+    } catch (err) {
+        console.error("Nutritionix failed:", err);
+
+        const manual = prompt(`Nutrition API error. Please enter calories for "${name}":`);
+        if (!manual || isNaN(manual)) {
+            alert("Invalid calorie input.");
+            return;
+        }
+
+        const response = await fetch(apiUrl + 'log', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify({ name, calories: Number(manual) })
+        });
+
+        if (!response.ok) {
+            alert("Failed to log food to backend");
+            return;
+        }
+
+        document.getElementById('foodForm').reset();
+        fetchCalories();
+    }
 }
+//end log food
 
 //update an existing food
 async function updateFood(index, name, calories) {
@@ -199,6 +259,10 @@ function showFoodDetails(food, index) {
         ? ((food.calories / dailyTarget) * 100).toFixed(2) + '%'
         : 'Set a daily target to see percentage';
     document.getElementById('modalFoodPercentage').textContent = percentage;
+    document.getElementById('modalFoodFat').textContent = food.fat ? food.fat + ' g' : 'N/A';
+    document.getElementById('modalFoodProtein').textContent = food.protein ? food.protein + ' g' : 'N/A';
+    document.getElementById('modalFoodCarbs').textContent = food.carbs ? food.carbs + ' g' : 'N/A';
+
 
     document.getElementById('recipeTitle').value = food.name || "";
     document.getElementById('recipeIngredients').value = "";
