@@ -2,43 +2,226 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calorie Tracker</title>
-    <link rel="stylesheet" href="/static/styles.css">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    
-
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Recipes</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" />
 </head>
 
 <body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light w-100 m-0">
-        <div class="container-fluid justify-content-between">
-          <a class="navbar-brand" href="/">NutriTrack</a>
-          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-          </button>
-          <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
-            <ul class="navbar-nav">
-              <li class="nav-item">
-                <a class="nav-link" aria-current="page" href="/goals">Goals</a>              
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="/recipes">Recipes</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="/profile">Profile</a>
-              </li>
-              <li class="nav-item">
-                <button onclick="logout()" class="btn btn-outline-danger btn-sm ms-2" id="logoutButton">Sign Out</button>
-            </li>
-            </ul>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-light bg-light w-100 m-0">
+    <div class="container-fluid justify-content-between">
+      <a class="navbar-brand" href="/">NutriTrack</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+        <ul class="navbar-nav">
+          <li class="nav-item"><a class="nav-link" href="/goals">Goals</a></li>
+          <li class="nav-item"><a class="nav-link active" aria-current="page" href="/recipes">Recipes</a></li>
+          <li class="nav-item"><a class="nav-link" href="/profile">Profile</a></li>
+          <li class="nav-item">
+            <button onclick="logout()" class="btn btn-outline-danger btn-sm ms-2" id="logoutButton">Sign Out</button>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Container -->
+  <div class="container mt-4">
+    <h3 class="text-center mb-4">My Recipe Collection</h3>
+    <div class="row">
+      <!-- Left Column: Add Recipe Form -->
+      <div class="col-md-4">
+        <div class="card">
+          <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Add New Recipe</h5>
+          </div>
+          <div class="card-body">
+            <form id="recipeForm">
+              <div class="mb-3">
+                <label for="recipeName" class="form-label">Recipe Name</label>
+                <input type="text" class="form-control" id="recipeName" placeholder="Enter recipe name" required />
+              </div>
+
+              <div class="mb-3">
+                <label for="recipeCategory" class="form-label">Category</label>
+                <select class="form-select" id="recipeCategory" required>
+                  <option value="" selected disabled>Select a category</option>
+                  <option value="breakfast">Breakfast</option>
+                  <option value="lunch">Lunch</option>
+                  <option value="dinner">Dinner</option>
+                  <option value="snack">Snack</option>
+                  <option value="dessert">Dessert</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+
+              <div class="mb-3">
+                <label for="recipeDifficulty" class="form-label">Difficulty</label>
+                <select class="form-select" id="recipeDifficulty">
+                  <option value="easy">Easy</option>
+                  <option value="medium" selected>Medium</option>
+                  <option value="hard">Hard</option>
+                </select>
+              </div>
+
+              <div class="mb-3">
+                <label for="recipePrepTime" class="form-label">Preparation Time (minutes)</label>
+                <input type="number" class="form-control" id="recipePrepTime" min="1" required />
+              </div>
+
+              <div class="mb-3">
+                <label for="recipeCalories" class="form-label">Calories (per serving)</label>
+                <input type="number" class="form-control" id="recipeCalories" min="0" required />
+              </div>
+
+              <div class="mb-3">
+                <label for="recipeServings" class="form-label">Number of Servings</label>
+                <input type="number" class="form-control" id="recipeServings" min="1" value="1" required />
+              </div>
+
+              <div class="mb-3">
+                <label for="recipeIngredients" class="form-label">Ingredients</label>
+                <textarea class="form-control" id="recipeIngredients" rows="5"
+                  placeholder="Enter each ingredient on a new line with quantities (e.g., 2 cups flour)"
+                  required></textarea>
+              </div>
+
+              <div class="mb-3">
+                <label for="recipeInstructions" class="form-label">Instructions</label>
+                <textarea class="form-control" id="recipeInstructions" rows="5"
+                  placeholder="Enter step-by-step instructions" required></textarea>
+              </div>
+
+              <div class="mb-3">
+                <label for="recipeNotes" class="form-label">Notes (optional)</label>
+                <textarea class="form-control" id="recipeNotes" rows="3"
+                  placeholder="Any additional notes or tips"></textarea>
+              </div>
+
+              <button type="button" class="btn btn-primary w-100" id="saveRecipeButton">Save Recipe</button>
+            </form>
           </div>
         </div>
-      </nav>
+      </div>
 
-      <h1>Recipes Page</h1>
-      <script src="static/main.js"></script>
+      <!-- Right Column: Recipe List & Search -->
+      <div class="col-md-8">
+        <div class="card mb-4">
+          <div class="card-header">
+            <div class="row g-2 align-items-center">
+              <div class="col-12 col-md-8">
+                <div class="input-group">
+                  <input type="text" class="form-control" id="searchInput" placeholder="Search recipes..." />
+                  <button class="btn btn-outline-secondary" type="button" id="searchButton">
+                    <i class="bi bi-search"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="col-12 col-md-4">
+                <select class="form-select" id="categoryFilter">
+                  <option value="all" selected>All Categories</option>
+                  <option value="breakfast">Breakfast</option>
+                  <option value="lunch">Lunch</option>
+                  <option value="dinner">Dinner</option>
+                  <option value="snack">Snack</option>
+                  <option value="dessert">Dessert</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div id="recipesList">
+              <div class="text-center" id="noRecipesMessage">
+                <p class="text-muted">No recipes found. Add your first recipe!</p>
+              </div>
+            </div>
+          </div>
+        </div>
 
-    </body>
-    </html>
+        <!-- Featured Recipe -->
+        <div class="card" id="featuredRecipeCard" style="display: none;">
+          <div class="card-header bg-success text-white">
+            <h5 class="mb-0">Featured Recipe</h5>
+          </div>
+          <div class="card-body">
+            <div id="featuredRecipeContent"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recipe Details Modal -->
+  <div class="modal fade" id="recipeDetailModal" tabindex="-1" aria-labelledby="recipeDetailModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="recipeDetailModalLabel">Recipe Details</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <h6><strong>Category:</strong></h6>
+              <p id="modalCategory" class="mb-1"></p>
+              <h6><strong>Difficulty:</strong></h6>
+              <p id="modalDifficulty" class="mb-1"></p>
+            </div>
+            <div class="col-md-6">
+              <h6><strong>Preparation Time:</strong></h6>
+              <p id="modalPrepTime" class="mb-1"></p>
+              <h6><strong>Calories:</strong></h6>
+              <p id="modalCalories" class="mb-1"></p>
+              <h6><strong>Servings:</strong></h6>
+              <p id="modalServings" class="mb-1"></p>
+            </div>
+          </div>
+
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <h6><strong>Ingredients:</strong></h6>
+              <ul id="modalIngredients" class="list-group list-group-flush"></ul>
+            </div>
+            <div class="col-md-6">
+              <h6><strong>Instructions:</strong></h6>
+              <ol id="modalInstructions"></ol>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <h6><strong>Notes:</strong></h6>
+            <p id="modalNotes"></p>
+          </div>
+
+          <div class="mb-3 text-center">
+            <button class="btn btn-success" id="logRecipeButton">
+              <i class="bi bi-plus-circle"></i> Log This Recipe
+            </button>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" id="editRecipeButton">Edit</button>
+          <button type="button" class="btn btn-danger" id="deleteRecipeButton">Delete</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/static/recipes.js"></script>
+  <script src="/static/main.js"></script>
+</body>
+
+</html>
