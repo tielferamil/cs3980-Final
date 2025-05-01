@@ -51,3 +51,11 @@ class FoodLog(Document):
 
     class Config:
         arbitrary_types_allowed = True
+
+# Recipe document stored in MongoDB
+class Recipe(BaseModel):
+    title: str
+    ingredients: str
+    instructions: str
+    food_id: Optional[str] 
+

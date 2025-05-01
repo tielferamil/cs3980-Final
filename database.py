@@ -7,8 +7,11 @@ from models import User, FoodLog, CalorieTarget
 client = MongoClient(
     "mongodb+srv://tielferamil:KHp0Wvip8ohKtawk@cluster0.9mh9yk6.mongodb.net/nutritrack?retryWrites=true&w=majority"
 )
+
 db = client["nutritrack"]
 users_collection = db["users"]
+recipes_collection = db["recipes"]
+
 
 
 async def init_db():

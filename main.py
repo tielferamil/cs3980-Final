@@ -2,11 +2,13 @@ from fastapi import FastAPI, HTTPException, Depends, Request, Body
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
-from models import UserSignup, UserLogin, User, FoodItem, FoodLog, CalorieTarget
+from models import UserSignup, UserLogin, User, FoodItem, FoodLog, CalorieTarget, Recipe
 from auth import hash_password, verify_password, create_access_token, get_current_user
 from database import init_db
 from beanie import PydanticObjectId
 from motor.motor_asyncio import AsyncIOMotorClient
+from database import recipes_collection
+from bson import ObjectId
 
 app = FastAPI()
 
@@ -136,3 +138,25 @@ async def delete_log(log_id: PydanticObjectId, user: User = Depends(get_current_
         raise HTTPException(status_code=404, detail="Not found")
     await log.delete()
     return {"message": "Deleted"}
+
+@app.post("/recipes/")
+async def create_recipe(recipe: Recipe):
+    recipe_dict = recipe.dict()
+    result = recipes_collection.insert_one(recipe_dict)
+    return {"id": str(result.inserted_id)}
+
+@app.get("/recipes/")
+async def get_recipes():
+    recipes = []
+    for r in recipes_collection.find():
+        r["_id"] = str(r["_id"])
+        recipes.append(r)
+    return recipes
+
+@app.get("/recipes/food/{food_id}")
+async def get_recipe_by_food(food_id: str):
+    recipe = recipes_collection.find_one({"food_id": food_id})
+    if recipe:
+        recipe["_id"] = str(recipe["_id"])
+        return recipe
+    raise HTTPException(status_code=404, detail="Recipe not found")

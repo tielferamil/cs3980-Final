@@ -194,23 +194,41 @@ function editFood(index, name, calories, recipe = '') {
 function showFoodDetails(food, index) {
     document.getElementById('modalFoodName').textContent = food.name;
     document.getElementById('modalFoodCalories').textContent = food.calories + ' calories';
-    document.getElementById('modalFoodRecipe').value = food.recipe || "";
 
     const percentage = (dailyTarget > 0)
         ? ((food.calories / dailyTarget) * 100).toFixed(2) + '%'
         : 'Set a daily target to see percentage';
     document.getElementById('modalFoodPercentage').textContent = percentage;
 
+    document.getElementById('recipeTitle').value = food.name || "";
+    document.getElementById('recipeIngredients').value = "";
+    document.getElementById('recipeInstructions').value = "";
+
+    fetch(`http://localhost:8000/recipes/food/${food._id}`)
+        .then(res => res.json())
+        .then(recipe => {
+            if (recipe && recipe.title) {
+                document.getElementById('recipeTitle').value = recipe.title;
+                document.getElementById('recipeIngredients').value = recipe.ingredients;
+                document.getElementById('recipeInstructions').value = recipe.instructions;
+            }
+        })
+        .catch(err => {
+            console.warn("No recipe found or error loading recipe:", err);
+        });
+
     document.getElementById('modalEditButton').onclick = function () {
-        editFood(index, food.name, food.calories, food.recipe);
+        editFood(index, food.name, food.calories);
     };
 
-    document.getElementById('saveRecipeButton').onclick = function () {
-        saveRecipe(index);
-    };
+    const saveBtn = document.getElementById("saveRecipeButton");
+    if (saveBtn) {
+        saveBtn.onclick = saveRecipe;
+    }
 
     foodDetailsModal.show();
 }
+
 
 //logout function
 function logout() {
@@ -222,5 +240,45 @@ function logout() {
 if (window.location.pathname === "/") {
     fetchCalories();
 }
+
+async function saveRecipe() {
+    const token = localStorage.getItem("token");
+
+    const titleEl = document.getElementById("recipeTitle");
+    const ingredientsEl = document.getElementById("recipeIngredients");
+    const instructionsEl = document.getElementById("recipeInstructions");
+    const title = titleEl.value.trim();
+    const ingredients = ingredientsEl.value.trim();
+    const instructions = instructionsEl.value.trim();
+
+    const food = currentFoodList.find(f => f.name === document.getElementById('modalFoodName').textContent);
+    const foodId = food?._id || null;
+
+    const response = await fetch("http://localhost:8000/recipes/", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + token
+        },
+        body: JSON.stringify({
+            title,
+            ingredients,
+            instructions,
+            food_id: foodId
+        })
+    });
+
+    if (response.ok) {
+        alert("Recipe saved!");
+        titleEl.value = "";
+        ingredientsEl.value = "";
+        instructionsEl.value = "";
+    } else {
+        alert("Failed to save recipe.");
+    }
+}
+
+
+
 
 window.logout = logout;

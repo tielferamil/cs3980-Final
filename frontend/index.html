@@ -9,7 +9,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 
-<body>
+<body class="index-page">
     <nav class="navbar navbar-expand-lg navbar-light bg-light w-100 m-0">
         <div class="container-fluid justify-content-between">
             <a class="navbar-brand" href="">NutriTrack</a>
@@ -73,39 +73,50 @@
     </div>
 
     <!-- Food Details Modal -->
-    <div class="modal fade" id="foodDetailsModal" tabindex="-1" aria-labelledby="foodDetailsModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="foodDetailsModalLabel">Food Details</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <h6><b>Food Name:</b></h6>
-                        <p id="modalFoodName"></p>
-                    </div>
-                    <div class="mb-3">
-                        <h6><b>Calories:</b></h6>
-                        <p id="modalFoodCalories"></p>
-                    </div>
-                    <div class="mb-3">
-                        <h6><b>Percentage of Daily Target:</b></h6>
-                        <p id="modalFoodPercentage"></p>
-                    </div>
-                    <div class="mb-3">
-                        <h6><b>Recipe (optional):</b></h6>
-                        <textarea id="modalFoodRecipe" rows="4" class="form-control"></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-success" id="saveRecipeButton">Save Recipe</button>
-                    <button type="button" class="btn btn-primary" id="modalEditButton">Edit</button>
-                </div>
-            </div>
+<div class="modal fade" id="foodDetailsModal" tabindex="-1" aria-labelledby="foodDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="foodDetailsModalLabel">Food Details</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <h6><b>Food Name:</b></h6>
+            <p id="modalFoodName"></p>
+          </div>
+          <div class="mb-3">
+            <h6><b>Calories:</b></h6>
+            <p id="modalFoodCalories"></p>
+          </div>
+          <div class="mb-3">
+            <h6><b>Percentage of Daily Target:</b></h6>
+            <p id="modalFoodPercentage"></p>
+          </div>
+  
+          <!-- Recipe Fields -->
+          <hr />
+          <h6><b>Add Recipe (Optional)</b></h6>
+          <div class="mb-3">
+            <label for="recipeTitle" class="form-label">Recipe Title</label>
+            <input type="text" id="recipeTitle" class="form-control" />
+          </div>
+          <div class="mb-3">
+            <label for="recipeIngredients" class="form-label">Ingredients</label>
+            <textarea id="recipeIngredients" class="form-control" rows="3"></textarea>
+          </div>
+          <div class="mb-3">
+            <label for="recipeInstructions" class="form-label">Instructions</label>
+            <textarea id="recipeInstructions" class="form-control" rows="3"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-success" id="saveRecipeButton">Save Recipe</button>
+          <button type="button" class="btn btn-primary" id="modalEditButton">Edit</button>
+        </div>
+      </div>
     </div>
+  </div>  
     <script> 
     // check if token exists before allowing user access
         if (!localStorage.getItem("token")) {
