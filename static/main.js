@@ -1,4 +1,5 @@
 const apiUrl = "http://localhost:8000/calories/";
+console.log("Main.js loaded");
 let dailyTarget = 0; //tracks the daily calorie target
 let editingFoodId = null; //tracks which food item is being edited
 
@@ -9,8 +10,28 @@ let currentFoodList = [];
 
 //initializes the modal
 document.addEventListener('DOMContentLoaded', function () {
-    foodDetailsModal = new bootstrap.Modal(document.getElementById('foodDetailsModal'));
-});
+    console.log("Main.js loaded");
+  
+    const modalElement = document.getElementById('foodDetailsModal');
+    if (modalElement) {
+      foodDetailsModal = new bootstrap.Modal(modalElement);
+    }
+  
+    const pathname = window.location.pathname;
+  
+    if (pathname === "/") {
+      fetchCalories();
+    } else if (pathname === "/recipes" || pathname === "/recipes/") {
+      console.log("Calling loadRecipes()");
+      loadRecipes();
+    }
+  
+    if (pathname !== "/login") {
+      checkIfAdmin();
+    }
+  });
+  
+  
 
 //fetches calorie data from the backend
 async function fetchCalories() {
@@ -268,7 +289,13 @@ function showFoodDetails(food, index) {
     document.getElementById('recipeIngredients').value = "";
     document.getElementById('recipeInstructions').value = "";
 
-    fetch(`http://localhost:8000/recipes/food/${food._id}`)
+    const token = localStorage.getItem("token");
+
+    fetch(`http://localhost:8000/recipes/food/${food._id}`, {
+        headers: {
+            "Authorization": `Bearer ${token}`
+        }
+    })
         .then(res => res.json())
         .then(recipe => {
             if (recipe && recipe.title) {
@@ -312,7 +339,7 @@ async function saveRecipe() {
     const ingredientsEl = document.getElementById("recipeIngredients");
     const instructionsEl = document.getElementById("recipeInstructions");
     const title = titleEl.value.trim();
-    const ingredients = ingredientsEl.value.trim();
+    const ingredients = ingredientsEl.value.trim().split(",").map(s => s.trim());
     const instructions = instructionsEl.value.trim();
 
     const food = currentFoodList.find(f => f.name === document.getElementById('modalFoodName').textContent);
@@ -325,10 +352,10 @@ async function saveRecipe() {
             "Authorization": "Bearer " + token
         },
         body: JSON.stringify({
-            title,
+            food_id: foodId,
+            name,
             ingredients,
             instructions,
-            food_id: foodId
         })
     });
 
@@ -361,3 +388,76 @@ async function checkIfAdmin() {
 
 
 window.logout = logout;
+
+// Logout
+function logout() {
+  localStorage.removeItem("token");
+  window.location.href = "/login";
+}
+window.logout = logout;
+
+// Admin check
+async function checkIfAdmin() {
+  const token = localStorage.getItem("token");
+  const res = await fetch("/me", {
+    headers: { "Authorization": "Bearer " + token }
+  });
+  const user = await res.json();
+  if (user.is_admin) {
+    document.getElementById("adminNavItem").classList.remove("d-none");
+  }
+}
+
+// Load recipes for /recipes page
+async function loadRecipes() {
+  const token = localStorage.getItem("token");
+  const container = document.getElementById("recipesContainer");
+  container.innerHTML = "";
+
+  try {
+    const response = await fetch("http://localhost:8000/recipes/", {
+      headers: {
+        "Authorization": "Bearer " + token
+      }
+    });
+
+    if (!response.ok) {
+      container.innerHTML = `<p class="text-center w-100 text-danger">Failed to load recipes. You may be logged out.</p>`;
+      return;
+    }
+
+    const recipes = await response.json();
+
+    if (recipes.length === 0) {
+      container.innerHTML = `<p class="text-center w-100">No recipes found.</p>`;
+      return;
+    }
+
+    recipes.forEach(recipe => {
+      const col = document.createElement("div");
+      col.className = "col";
+
+      const card = `
+        <div class="card h-100 shadow-sm border border-1 rounded-4" style="background-color: #fdfdfd;">
+          <div class="card-body d-flex flex-column p-4">
+            <h5 class="card-title mb-3 text-dark fw-semibold">${recipe.name}</h5>
+            <div class="mb-3 overflow-auto" style="max-height: 130px;">
+              <strong class="text-muted">Ingredients:</strong>
+              <p class="mb-0 small" style="white-space: pre-wrap;">${Array.isArray(recipe.ingredients) ? recipe.ingredients.join(", ") : recipe.ingredients}</p>
+            </div>
+            <div class="overflow-auto" style="max-height: 130px;">
+              <strong class="text-muted">Instructions:</strong>
+              <p class="mb-0 small" style="white-space: pre-wrap;">${recipe.instructions}</p>
+            </div>
+          </div>
+        </div>
+      `;
+
+      col.innerHTML = card;
+      container.appendChild(col);
+    });
+  } catch (err) {
+    container.innerHTML = `<p class="text-center w-100 text-danger">Error loading recipes.</p>`;
+    console.error(err);
+  }
+}

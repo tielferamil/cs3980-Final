@@ -1,12 +1,13 @@
 from beanie import Document, PydanticObjectId
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List
 
 
 # === USER MODEL ===
 class User(Document):
     username: str
     hashed_password: str
+    is_admin: bool = False
     weight: Optional[float] = None  # in kilograms
     height: Optional[float] = None
 
@@ -70,10 +71,12 @@ class FoodItem(BaseModel):
     protein: Optional[float] = None
     carbs: Optional[float] = None
 
+class RecipeCreate(BaseModel):
+    food_id: str
+    name: str
+    ingredients: List[str]
+    instructions: str
 
 # === RECIPE MODEL ===
-class Recipe(BaseModel):
-    title: str
-    ingredients: str
-    instructions: str
-    food_id: Optional[str]
+class Recipe(RecipeCreate):
+    user_id: PydanticObjectId

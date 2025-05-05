@@ -11,6 +11,7 @@ from models import (
     FoodLogCreate,
     CalorieTarget,
     Recipe,
+    RecipeCreate,
 )
 from auth import hash_password, verify_password, create_access_token, get_current_user
 from database import init_db
@@ -32,7 +33,10 @@ app = FastAPI()
 # Enable CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+    "http://localhost:8000",
+    "http://127.0.0.1:8000"
+],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -54,13 +58,7 @@ async def serve_goals():
     with open("frontend/goals.html", "r") as f:
         return f.read()
 
-
-@app.get("/recipes", response_class=HTMLResponse)
-async def serve_recipes():
-    with open("frontend/recipes.html", "r") as f:
-        return f.read()
-
-
+# Serve profile page
 @app.get("/profile", response_class=HTMLResponse)
 async def serve_profile():
     with open("frontend/profile.html", "r") as f:
@@ -207,25 +205,34 @@ async def delete_log(log_id: PydanticObjectId, user: User = Depends(get_current_
     await log.delete()
     return {"message": "Deleted"}
 
-
+# Posting recipes
 @app.post("/recipes/")
-async def create_recipe(recipe: Recipe):
+async def create_recipe(recipe: RecipeCreate, user: User = Depends(get_current_user)):
     recipe_dict = recipe.dict()
+    recipe_dict["user_id"] = str(user.id)
     result = recipes_collection.insert_one(recipe_dict)
     return {"id": str(result.inserted_id)}
 
 # Get all recipes
 @app.get("/recipes/")
-async def get_recipes():
-    recipes = []
-    for r in recipes_collection.find():
+async def get_recipes(user: User = Depends(get_current_user)):
+    cursor = recipes_collection.find({"user_id": str(user.id)})
+    recipes = cursor.to_list(length=None)
+    for r in recipes:
         r["_id"] = str(r["_id"])
-        recipes.append(r)
     return recipes
+
+
+
+@app.get("/recipes", response_class=HTMLResponse)
+async def serve_recipes():
+    with open("frontend/recipes.html", "r") as f:
+        return f.read()
+
 
 # Get a recipe by ID
 @app.get("/recipes/food/{food_id}")
-async def get_recipe_by_food(food_id: str):
+async def get_recipe_by_food(food_id: str, user: User = Depends(get_current_user)):
     recipe = recipes_collection.find_one({"food_id": food_id})
     if recipe:
         recipe["_id"] = str(recipe["_id"])
