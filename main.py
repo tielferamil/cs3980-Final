@@ -18,6 +18,14 @@ from beanie import PydanticObjectId
 from motor.motor_asyncio import AsyncIOMotorClient
 from database import recipes_collection
 from bson import ObjectId
+from pydantic import BaseModel
+from typing import Optional
+
+
+class ProfileUpdate(BaseModel):
+    weight: Optional[float]
+    height: Optional[float]
+
 
 app = FastAPI()
 
@@ -57,6 +65,37 @@ async def serve_recipes():
 async def serve_profile():
     with open("frontend/profile.html", "r") as f:
         return f.read()
+
+
+@app.get("/profile-data")
+async def get_profile_data(user: User = Depends(get_current_user)):
+    log_count = await FoodLog.find(FoodLog.user_id == user.id).count()
+    target_doc = await CalorieTarget.find_one(CalorieTarget.user_id == user.id)
+    target = target_doc.target if target_doc else None
+
+    # Calculate BMI if height and weight are available
+    bmi = None
+    if user.weight and user.height and user.height > 0:
+        bmi = round(user.weight / (user.height**2), 2)
+
+    return {
+        "username": user.username,
+        "logCount": log_count,
+        "target": target,
+        "weight": user.weight,
+        "height": user.height,
+        "bmi": bmi,
+    }
+
+
+@app.post("/profile-data")
+async def update_profile(data: ProfileUpdate, user: User = Depends(get_current_user)):
+    if data.weight:
+        user.weight = data.weight
+    if data.height:
+        user.height = data.height
+    await user.save()
+    return {"message": "Profile updated"}
 
 
 @app.get("/login", response_class=HTMLResponse)

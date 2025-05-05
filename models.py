@@ -7,6 +7,8 @@ from typing import Optional
 class User(Document):
     username: str
     hashed_password: str
+    weight: Optional[float] = None  # in kilograms
+    height: Optional[float] = None
 
     class Settings:
         name = "users"  # MongoDB collection name
