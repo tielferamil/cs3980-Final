@@ -1,10 +1,9 @@
-from beanie import Document
+from beanie import Document, PydanticObjectId
 from pydantic import BaseModel
 from typing import Optional
-from beanie import PydanticObjectId
 
 
-# User document stored in MongoDB
+# === USER MODEL ===
 class User(Document):
     username: str
     hashed_password: str
@@ -14,7 +13,7 @@ class User(Document):
         name = "users"  # MongoDB collection name
 
 
-# Request schemas (not stored directly)
+# === AUTH REQUEST MODELS ===
 class UserSignup(BaseModel):
     username: str
     password: str
@@ -25,11 +24,7 @@ class UserLogin(BaseModel):
     password: str
 
 
-# A food item from frontend
-class FoodItem(BaseModel):
-    name: str
-    calories: int
-
+# === CALORIE TARGET MODEL ===
 class CalorieTarget(Document):
     user_id: PydanticObjectId
     target: int
@@ -41,22 +36,43 @@ class CalorieTarget(Document):
         arbitrary_types_allowed = True
 
 
-# Food log stored per user
+# === FOOD LOG MODEL (DATABASE) ===
 class FoodLog(Document):
     user_id: PydanticObjectId
     name: str
     calories: int
+    fat: Optional[float] = None
+    protein: Optional[float] = None
+    carbs: Optional[float] = None
 
     class Settings:
-        name = "foodlogs"# MongoDB collection name
+        name = "foodlogs"
 
     class Config:
         arbitrary_types_allowed = True
 
-# Recipe document stored in MongoDB
+
+# === FOOD LOG REQUEST MODEL (FROM FRONTEND) ===
+class FoodLogCreate(BaseModel):
+    name: str
+    calories: int
+    fat: Optional[float] = None
+    protein: Optional[float] = None
+    carbs: Optional[float] = None
+
+
+# === OPTIONAL: FOOD ITEM FOR READ-ONLY PURPOSES ===
+class FoodItem(BaseModel):
+    name: str
+    calories: int
+    fat: Optional[float] = None
+    protein: Optional[float] = None
+    carbs: Optional[float] = None
+
+
+# === RECIPE MODEL ===
 class Recipe(BaseModel):
     title: str
     ingredients: str
     instructions: str
-    food_id: Optional[str] 
-
+    food_id: Optional[str]

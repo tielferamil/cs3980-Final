@@ -2,7 +2,16 @@ from fastapi import FastAPI, HTTPException, Depends, Request, Body
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
-from models import UserSignup, UserLogin, User, FoodItem, FoodLog, CalorieTarget, Recipe
+from models import (
+    UserSignup,
+    UserLogin,
+    User,
+    FoodItem,
+    FoodLog,
+    FoodLogCreate,
+    CalorieTarget,
+    Recipe,
+)
 from auth import hash_password, verify_password, create_access_token, get_current_user
 from database import init_db
 from beanie import PydanticObjectId
@@ -86,8 +95,15 @@ async def login(user: UserLogin):
 
 # Log Food (authenticated)
 @app.post("/calories/log")
-async def log_food(food: FoodItem, user: User = Depends(get_current_user)):
-    log = FoodLog(user_id=user.id, name=food.name, calories=food.calories)
+async def log_food(food: FoodLogCreate, user: User = Depends(get_current_user)):
+    log = FoodLog(
+        user_id=user.id,
+        name=food.name,
+        calories=food.calories,
+        fat=food.fat,
+        protein=food.protein,
+        carbs=food.carbs,
+    )
     await log.insert()
     return {"message": "Food logged"}
 
@@ -101,15 +117,26 @@ async def get_calories(user: User = Depends(get_current_user)):
     target_doc = await CalorieTarget.find_one(CalorieTarget.user_id == user.id)
     target = target_doc.target if target_doc else 0
 
-    return {"totalCalories": total, "foods": logs, "target": target}
+    return {
+        "totalCalories": total,
+        "foods": [
+            {
+                "name": item.name,
+                "calories": item.calories,
+                "fat": item.fat,
+                "protein": item.protein,
+                "carbs": item.carbs,
+                "_id": str(item.id),
+            }
+            for item in logs
+        ],
+        "target": target,
+    }
 
 
 # Set daily target (authenticated)
 @app.post("/calories/target")
-async def set_target(
-    target: int = Body(...),
-    user: User = Depends(get_current_user)
-):
+async def set_target(target: int = Body(...), user: User = Depends(get_current_user)):
     existing = await CalorieTarget.find_one(CalorieTarget.user_id == user.id)
     if existing:
         existing.target = target
@@ -120,7 +147,9 @@ async def set_target(
 
 
 @app.put("/calories/log/{log_id}")
-async def update_log(log_id: PydanticObjectId, food: FoodItem, user: User = Depends(get_current_user)):
+async def update_log(
+    log_id: PydanticObjectId, food: FoodItem, user: User = Depends(get_current_user)
+):
     log = await FoodLog.get(log_id)
     if not log or log.user_id != user.id:
         raise HTTPException(status_code=404, detail="Not found")
@@ -138,6 +167,7 @@ async def delete_log(log_id: PydanticObjectId, user: User = Depends(get_current_
         raise HTTPException(status_code=404, detail="Not found")
     await log.delete()
     return {"message": "Deleted"}
+
 
 @app.post("/recipes/")
 async def create_recipe(recipe: Recipe):

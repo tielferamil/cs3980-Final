@@ -54,15 +54,15 @@ form {
     text-align: center;
 }
 
-input[type="text"], 
+input[type="text"],
 input[type="number"] {
-    width: 90%; 
+    width: 90%;
     padding: 10px;
-    margin: 0 auto 10px auto; 
+    margin: 0 auto 10px auto;
     border: 1px solid #ddd;
     border-radius: 4px;
     font-size: 16px;
-    display: block; 
+    display: block;
 }
 
 button {
@@ -74,7 +74,7 @@ button {
     font-size: 16px;
     cursor: pointer;
     transition: background-color 0.3s ease;
-    width: 90%; 
+    width: 90%;
     margin: 0 auto;
 }
 
@@ -146,7 +146,7 @@ button:hover {
 #foodList li button {
     padding: 5px 10px;
     font-size: 14px;
-    width: auto; 
+    width: auto;
 }
 
 #foodList li button.edit {
@@ -173,11 +173,11 @@ button, .btn {
     border-radius: 50px !important;
 }
 
-.modal-footer{
+.modal-footer {
     justify-content: center !important;
 }
 
-.authButton{
+.authButton {
     background-color: #2980b9 !important;
 }
 
@@ -186,18 +186,16 @@ button, .btn {
     .container {
         flex-direction: column;
     }
-    
+
     body {
         padding: 10px;
     }
-    
+
     form {
         padding: 15px;
     }
-    
+
     button {
         width: 90%;
     }
 }
-
-
