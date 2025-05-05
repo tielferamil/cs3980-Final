@@ -214,7 +214,7 @@ async def create_recipe(recipe: Recipe):
     result = recipes_collection.insert_one(recipe_dict)
     return {"id": str(result.inserted_id)}
 
-
+# Get all recipes
 @app.get("/recipes/")
 async def get_recipes():
     recipes = []
@@ -223,7 +223,7 @@ async def get_recipes():
         recipes.append(r)
     return recipes
 
-
+# Get a recipe by ID
 @app.get("/recipes/food/{food_id}")
 async def get_recipe_by_food(food_id: str):
     recipe = recipes_collection.find_one({"food_id": food_id})
@@ -231,3 +231,39 @@ async def get_recipe_by_food(food_id: str):
         recipe["_id"] = str(recipe["_id"])
         return recipe
     raise HTTPException(status_code=404, detail="Recipe not found")
+
+# admin page
+@app.get("/admin", response_class=HTMLResponse)
+async def serve_admin():
+    with open("frontend/admin.html", "r") as f:
+        return f.read()
+    
+# admin check
+def require_admin(user: User):
+    if not user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
+
+# Admin routes
+@app.get("/admin/users")
+async def get_users(user: User = Depends(get_current_user)):
+    require_admin(user)
+    users = await User.find_all().to_list()
+    return [{"username": user.username, "is_admin": user.is_admin} for user in users]
+
+
+# admin promotion
+@app.put("/admin/promote/{username}")
+async def promote_user(username: str, user: User = Depends(get_current_user)):
+    require_admin(user)
+    target = await User.find_one(User.username == username)
+    if not target:
+        raise HTTPException(status_code=404, detail="User not found")
+    target.is_admin = True
+    await target.save()
+    return {"message": f"User {username} promoted to admin"}
+
+# admin check route
+@app.get("/me")
+async def get_me(user: User = Depends(get_current_user)):
+    return {"username": user.username, "is_admin": user.is_admin}
+

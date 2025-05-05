@@ -165,25 +165,11 @@ button:hover {
     background-color: #c0392b;
 }
 
-nav.navbar {
-    width: 100%;
-    margin: 0;
-    padding: 0.5rem 1rem;
-}
-
 .container {
     padding-top: 20px;
 }
 
-.navbar-brand {
-    color: #2980b9 !important;
-    font-weight: bold !important;
-    text-shadow: 0.5px 0.5px 1px rgba(0, 0, 0, 0.2) !important;
-
-}
-
-button,
-.btn {
+button, .btn {
     border-radius: 50px !important;
 }
 

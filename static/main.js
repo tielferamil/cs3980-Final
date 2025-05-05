@@ -342,7 +342,22 @@ async function saveRecipe() {
     }
 }
 
-
+// checks if the user is an admin and shows the admin nav item
+async function checkIfAdmin() {
+    const token = localStorage.getItem("token");
+    const res = await fetch("/me", {
+      headers: { "Authorization": "Bearer " + token }
+    });
+    const user = await res.json();
+    if (user.is_admin) {
+      document.getElementById("adminNavItem").classList.remove("d-none");
+    }
+  }
+  
+  if (window.location.pathname !== "/login") {
+    checkIfAdmin();
+  }
+  
 
 
 window.logout = logout;
