@@ -21,6 +21,7 @@ from database import recipes_collection
 from bson import ObjectId
 from pydantic import BaseModel
 from typing import Optional
+from models import Goal, GoalCreate, GoalProgressUpdate
 
 
 class ProfileUpdate(BaseModel):
@@ -33,10 +34,7 @@ app = FastAPI()
 # Enable CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-    "http://localhost:8000",
-    "http://127.0.0.1:8000"
-],
+    allow_origins=["http://localhost:8000", "http://127.0.0.1:8000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -58,6 +56,7 @@ async def serve_goals():
     with open("frontend/goals.html", "r") as f:
         return f.read()
 
+
 # Serve profile page
 @app.get("/profile", response_class=HTMLResponse)
 async def serve_profile():
@@ -70,12 +69,10 @@ async def get_profile_data(user: User = Depends(get_current_user)):
     log_count = await FoodLog.find(FoodLog.user_id == user.id).count()
     target_doc = await CalorieTarget.find_one(CalorieTarget.user_id == user.id)
     target = target_doc.target if target_doc else None
-
     # Calculate BMI if height and weight are available
     bmi = None
     if user.weight and user.height and user.height > 0:
         bmi = round(user.weight / (user.height**2), 2)
-
     return {
         "username": user.username,
         "logCount": log_count,
@@ -99,6 +96,13 @@ async def update_profile(data: ProfileUpdate, user: User = Depends(get_current_u
 @app.get("/login", response_class=HTMLResponse)
 async def serve_login():
     with open("frontend/login.html", "r") as f:
+        return f.read()
+
+
+# Serve recipes page
+@app.get("/recipes", response_class=HTMLResponse)
+async def serve_recipes():
+    with open("frontend/recipes.html", "r") as f:
         return f.read()
 
 
@@ -150,10 +154,8 @@ async def log_food(food: FoodLogCreate, user: User = Depends(get_current_user)):
 async def get_calories(user: User = Depends(get_current_user)):
     logs = await FoodLog.find(FoodLog.user_id == user.id).to_list()
     total = sum(item.calories for item in logs)
-
     target_doc = await CalorieTarget.find_one(CalorieTarget.user_id == user.id)
     target = target_doc.target if target_doc else 0
-
     return {
         "totalCalories": total,
         "foods": [
@@ -205,6 +207,7 @@ async def delete_log(log_id: PydanticObjectId, user: User = Depends(get_current_
     await log.delete()
     return {"message": "Deleted"}
 
+
 # Posting recipes
 @app.post("/recipes/")
 async def create_recipe(recipe: RecipeCreate, user: User = Depends(get_current_user)):
@@ -212,6 +215,7 @@ async def create_recipe(recipe: RecipeCreate, user: User = Depends(get_current_u
     recipe_dict["user_id"] = str(user.id)
     result = recipes_collection.insert_one(recipe_dict)
     return {"id": str(result.inserted_id)}
+
 
 # Get all recipes
 @app.get("/recipes/")
@@ -223,13 +227,6 @@ async def get_recipes(user: User = Depends(get_current_user)):
     return recipes
 
 
-
-@app.get("/recipes", response_class=HTMLResponse)
-async def serve_recipes():
-    with open("frontend/recipes.html", "r") as f:
-        return f.read()
-
-
 # Get a recipe by ID
 @app.get("/recipes/food/{food_id}")
 async def get_recipe_by_food(food_id: str, user: User = Depends(get_current_user)):
@@ -239,16 +236,19 @@ async def get_recipe_by_food(food_id: str, user: User = Depends(get_current_user
         return recipe
     raise HTTPException(status_code=404, detail="Recipe not found")
 
+
 # admin page
 @app.get("/admin", response_class=HTMLResponse)
 async def serve_admin():
     with open("frontend/admin.html", "r") as f:
         return f.read()
-    
+
+
 # admin check
 def require_admin(user: User):
     if not user.is_admin:
         raise HTTPException(status_code=403, detail="Admin access required")
+
 
 # Admin routes
 @app.get("/admin/users")
@@ -269,8 +269,105 @@ async def promote_user(username: str, user: User = Depends(get_current_user)):
     await target.save()
     return {"message": f"User {username} promoted to admin"}
 
+
 # admin check route
 @app.get("/me")
 async def get_me(user: User = Depends(get_current_user)):
     return {"username": user.username, "is_admin": user.is_admin}
 
+
+@app.post("/goals/create")
+async def create_goal(goal: GoalCreate, user: User = Depends(get_current_user)):
+    new_goal = Goal(
+        user_id=user.id,
+        type=goal.type,
+        title=goal.title,
+        targetValue=goal.targetValue,
+        currentValue=goal.currentValue,
+        measurementUnit=goal.measurementUnit,
+        targetDate=goal.targetDate,
+        notes=goal.notes,
+        progress=(
+            int((goal.currentValue / goal.targetValue) * 100)
+            if goal.targetValue > 0
+            else 0
+        ),
+        completed=False,
+    )
+    await new_goal.insert()
+    return {"message": "Goal created successfully", "id": str(new_goal.id)}
+
+
+# Get all goals for the current user
+@app.get("/goals/list")
+async def get_goals(user: User = Depends(get_current_user)):
+    goals = await Goal.find(Goal.user_id == user.id).to_list()
+    return [
+        {
+            "_id": str(goal.id),
+            "type": goal.type,
+            "title": goal.title,
+            "targetValue": goal.targetValue,
+            "currentValue": goal.currentValue,
+            "measurementUnit": goal.measurementUnit,
+            "targetDate": goal.targetDate,
+            "notes": goal.notes,
+            "progress": goal.progress,
+            "completed": goal.completed,
+        }
+        for goal in goals
+    ]
+
+
+# Update goal progress
+@app.put("/goals/{goal_id}/progress")
+async def update_goal_progress(
+    goal_id: PydanticObjectId,
+    progress_update: GoalProgressUpdate,
+    user: User = Depends(get_current_user),
+):
+    goal = await Goal.get(goal_id)
+    if not goal or goal.user_id != user.id:
+        raise HTTPException(status_code=404, detail="Goal not found")
+    goal.currentValue = progress_update.currentValue
+    goal.progress = progress_update.progress
+    goal.completed = progress_update.completed
+    await goal.save()
+    return {"message": "Goal progress updated"}
+
+
+# Update goal details
+@app.put("/goals/{goal_id}")
+async def update_goal(
+    goal_id: PydanticObjectId,
+    goal_update: GoalCreate,
+    user: User = Depends(get_current_user),
+):
+    goal = await Goal.get(goal_id)
+    if not goal or goal.user_id != user.id:
+        raise HTTPException(status_code=404, detail="Goal not found")
+    goal.type = goal_update.type
+    goal.title = goal_update.title
+    goal.targetValue = goal_update.targetValue
+    goal.measurementUnit = goal_update.measurementUnit
+    goal.targetDate = goal_update.targetDate
+    goal.notes = goal_update.notes
+    # Recalculate progress with new target value
+    goal.progress = (
+        int((goal.currentValue / goal.targetValue) * 100) if goal.targetValue > 0 else 0
+    )
+    goal.completed = goal.progress >= 100
+    await goal.save()
+    return {"message": "Goal updated"}
+
+
+# Delete goal
+@app.delete("/goals/{goal_id}")
+async def delete_goal(
+    goal_id: PydanticObjectId, user: User = Depends(get_current_user)
+):
+    goal = await Goal.get(goal_id)
+    if not goal or goal.user_id != user.id:
+        raise HTTPException(status_code=404, detail="Goal not found")
+    await goal.delete()
+    return {"message": "Goal deleted"}
