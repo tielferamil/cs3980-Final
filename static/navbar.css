@@ -1,0 +1,12 @@
+.navbar-brand{
+    color: #09bd1b !important;
+    font-weight: bold !important;
+    text-shadow: 0.5px 0.5px 1px rgba(0, 0, 0, 0.2) !important;
+    font-size: 1.5rem !important;
+}
+
+nav.navbar {
+    width: 100%;
+    margin: 0;
+    padding: 0.5rem 1rem;
+}

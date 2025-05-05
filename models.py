@@ -8,6 +8,7 @@ from beanie import PydanticObjectId
 class User(Document):
     username: str
     hashed_password: str
+    is_admin: bool = False
 
     class Settings:
         name = "users"  # MongoDB collection name
