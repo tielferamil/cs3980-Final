@@ -63,7 +63,7 @@ class FoodLogCreate(BaseModel):
     carbs: Optional[float] = None
 
 
-# === OPTIONAL: FOOD ITEM FOR READ-ONLY PURPOSES ===
+# === FOOD ITEM FOR READ-ONLY PURPOSES ===
 class FoodItem(BaseModel):
     name: str
     calories: int

@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', function () {
   fetchGoals();
 });
 
-// Helper: Show in-page Bootstrap alert
+// Show in-page Bootstrap alert
 function showAlert(message, type = 'success') {
   const alertBox = document.getElementById('feedbackAlert');
   alertBox.className = `alert alert-${type}`;
