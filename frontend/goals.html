@@ -31,7 +31,7 @@
                     </li>
                     <li class="nav-item d-none" id="adminNavItem">
                         <a class="nav-link" href="/admin">Admin</a>
-                    </li>    
+                    </li>
                     <li class="nav-item">
                         <button onclick="logout()" class="btn btn-outline-danger btn-sm" id="logoutButton">Sign
                             Out</button>
@@ -43,7 +43,7 @@
 
     <div class="container mt-4">
         <h3 class="text-center mb-4">My Nutrition & Fitness Goals</h3>
-
+        <div id="feedbackAlert" class="alert alert-success d-none" role="alert"></div>
         <div class="row">
             <!-- Left Column - Goal Setting -->
             <div class="col-md-6">
@@ -187,10 +187,13 @@
                     <div class="mb-3">
                         <h6><strong>Update Progress:</strong></h6>
                         <div class="input-group">
-                            <input type="number" class="form-control" id="progressUpdate" placeholder="Current value">
-                            <button class="btn btn-outline-success" type="button" id="updateProgressBtn">Update</button>
+                            <input type="number" class="form-control form-control-lg" id="progressUpdate"
+                                placeholder="Current value" style="flex: 2;">
+                            <button class="btn btn-outline-success" type="button" id="updateProgressBtn"
+                                style="flex: 0.5; font-size: 0.9rem;">Update</button>
                         </div>
                     </div>
+
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -203,7 +206,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/static/goals.js"></script>
-    <script src="/static/main.js"></script>
 </body>
 
 </html>

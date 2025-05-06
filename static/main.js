@@ -393,17 +393,17 @@ async function saveRecipe() {
 async function checkIfAdmin() {
     const token = localStorage.getItem("token");
     const res = await fetch("/me", {
-      headers: { "Authorization": "Bearer " + token }
+        headers: { "Authorization": "Bearer " + token }
     });
     const user = await res.json();
     if (user.is_admin) {
-      document.getElementById("adminNavItem").classList.remove("d-none");
+        document.getElementById("adminNavItem").classList.remove("d-none");
     }
-  }
-  
-  if (window.location.pathname !== "/login") {
+}
+
+if (window.location.pathname !== "/login") {
     checkIfAdmin();
-  }
+}
 
 
 // Admin check

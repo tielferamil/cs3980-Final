@@ -7,7 +7,7 @@ from typing import Optional, List
 class User(Document):
     username: str
     hashed_password: str
-    is_admin: bool = False
+    is_admin: bool = False  # Added from repo version
     weight: Optional[float] = None  # in kilograms
     height: Optional[float] = None
 
@@ -71,12 +71,53 @@ class FoodItem(BaseModel):
     protein: Optional[float] = None
     carbs: Optional[float] = None
 
+
+# === RECIPE MODELS ===
 class RecipeCreate(BaseModel):
     food_id: str
     name: str
     ingredients: List[str]
     instructions: str
 
+
 # === RECIPE MODEL ===
 class Recipe(RecipeCreate):
     user_id: PydanticObjectId
+
+
+# === GOAL MODEL ===
+class Goal(Document):
+    user_id: PydanticObjectId
+    type: str  # 'weight', 'nutrition', 'exercise', 'water', 'custom'
+    title: str
+    targetValue: float
+    currentValue: float = 0.0
+    measurementUnit: str
+    targetDate: str
+    notes: Optional[str] = None
+    progress: int = 0  # 0-100 percentage
+    completed: bool = False
+
+    class Settings:
+        name = "goals"
+
+    class Config:
+        arbitrary_types_allowed = True
+
+
+# === GOAL CREATE/UPDATE REQUEST MODEL ===
+class GoalCreate(BaseModel):
+    type: str
+    title: str
+    targetValue: float
+    currentValue: float = 0.0
+    measurementUnit: str
+    targetDate: str
+    notes: Optional[str] = None
+
+
+# === GOAL PROGRESS UPDATE MODEL ===
+class GoalProgressUpdate(BaseModel):
+    currentValue: float
+    progress: int
+    completed: bool = False
