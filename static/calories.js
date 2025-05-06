@@ -44,36 +44,27 @@ async function fetchCalories() {
     currentFoodList = data.foods;
 
     data.foods.forEach((food, index) => {
-      const li = document.createElement('li');
-      li.innerHTML = `<b>${food.name}</b> &nbsp- ${food.calories} Calories`;
-
-      li.classList.add('food-item-clickable');
-      li.addEventListener('click', () => showFoodDetails(food, index));
-
-      const buttonContainer = document.createElement('div');
-      buttonContainer.classList.add('button-container');
-
-      const editButton = document.createElement('button');
-      editButton.textContent = 'Edit';
-      editButton.classList.add('edit');
-      editButton.onclick = (e) => {
-        e.stopPropagation();
-        editFood(index, food.name, food.calories);
-      };
-      buttonContainer.appendChild(editButton);
-
-      const deleteButton = document.createElement('button');
-      deleteButton.textContent = 'Delete';
-      deleteButton.classList.add('delete');
-      deleteButton.onclick = (e) => {
-        e.stopPropagation();
-        deleteFood(index);
-      };
-      buttonContainer.appendChild(deleteButton);
-
-      li.appendChild(buttonContainer);
-      foodList.appendChild(li);
-    });
+        const li = document.createElement('li');
+        li.innerHTML = `<b>${food.name}</b> &nbsp- ${food.calories} Calories`;
+      
+        li.classList.add('food-item-clickable');
+        li.addEventListener('click', () => showFoodDetails(food, index));
+      
+        const buttonContainer = document.createElement('div');
+        buttonContainer.classList.add('button-container');
+      
+        const deleteButton = document.createElement('button');
+        deleteButton.textContent = 'Delete';
+        deleteButton.classList.add('delete');
+        deleteButton.onclick = (e) => {
+          e.stopPropagation();
+          deleteFood(index);
+        };
+        buttonContainer.appendChild(deleteButton);
+      
+        li.appendChild(buttonContainer);
+        foodList.appendChild(li);
+      });      
   } catch (error) {
     alert("Failed to fetch calorie data. Network error or server is down");
     console.error(error);
