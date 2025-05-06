@@ -21,6 +21,7 @@ from database import recipes_collection
 from bson import ObjectId
 from pydantic import BaseModel
 from typing import Optional
+import asyncio
 
 
 class ProfileUpdate(BaseModel):
@@ -202,16 +203,35 @@ async def delete_log(log_id: PydanticObjectId, user: User = Depends(get_current_
     log = await FoodLog.get(log_id)
     if not log or log.user_id != user.id:
         raise HTTPException(status_code=404, detail="Not found")
+
     await log.delete()
-    return {"message": "Deleted"}
+
+    food_id_str = str(log_id)
+    user_id_str = str(user.id)
+
+    loop = asyncio.get_event_loop()
+    result = await loop.run_in_executor(
+        None,
+        lambda: recipes_collection.delete_one({
+            "food_id": food_id_str,
+            "user_id": user_id_str
+        })
+    )
+
+    return {"message": "Food log deleted. Recipe deleted?" if result.deleted_count else "No recipe matched."}
 
 # Posting recipes
 @app.post("/recipes/")
 async def create_recipe(recipe: RecipeCreate, user: User = Depends(get_current_user)):
+    loop = asyncio.get_event_loop()
     recipe_dict = recipe.dict()
     recipe_dict["user_id"] = str(user.id)
-    result = recipes_collection.insert_one(recipe_dict)
+    result = await loop.run_in_executor(
+        None,
+        lambda: recipes_collection.insert_one(recipe_dict)
+    )
     return {"id": str(result.inserted_id)}
+
 
 # Get all recipes
 @app.get("/recipes/")
@@ -233,7 +253,11 @@ async def serve_recipes():
 # Get a recipe by ID
 @app.get("/recipes/food/{food_id}")
 async def get_recipe_by_food(food_id: str, user: User = Depends(get_current_user)):
-    recipe = recipes_collection.find_one({"food_id": food_id})
+    loop = asyncio.get_event_loop()
+    recipe = await loop.run_in_executor(
+        None,
+        lambda: recipes_collection.find_one({"food_id": food_id, "user_id": str(user.id)})
+    )
     if recipe:
         recipe["_id"] = str(recipe["_id"])
         return recipe
@@ -273,4 +297,32 @@ async def promote_user(username: str, user: User = Depends(get_current_user)):
 @app.get("/me")
 async def get_me(user: User = Depends(get_current_user)):
     return {"username": user.username, "is_admin": user.is_admin}
+
+
+
+@app.put("/recipes/food/{food_id}")
+async def update_recipe_by_food(food_id: str, recipe: RecipeCreate, user: User = Depends(get_current_user)):
+    loop = asyncio.get_event_loop()
+    existing = await loop.run_in_executor(
+        None,
+        lambda: recipes_collection.find_one({"food_id": food_id, "user_id": str(user.id)})
+    )
+    if not existing:
+        raise HTTPException(status_code=404, detail="Recipe not found")
+
+    updated = {
+        "food_id": food_id,
+        "user_id": str(user.id),
+        "name": recipe.name,
+        "ingredients": recipe.ingredients,
+        "instructions": recipe.instructions,
+    }
+
+    await loop.run_in_executor(
+        None,
+        lambda: recipes_collection.replace_one({"_id": existing["_id"]}, updated)
+    )
+    return {"message": "Recipe updated"}
+
+
 

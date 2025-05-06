@@ -1,5 +1,4 @@
 const apiUrl = "http://localhost:8000/calories/";
-console.log("Main.js loaded");
 let dailyTarget = 0; //tracks the daily calorie target
 let editingFoodId = null; //tracks which food item is being edited
 
@@ -7,6 +6,7 @@ let editingFoodId = null; //tracks which food item is being edited
 let foodDetailsModal;
 //track current food list
 let currentFoodList = [];
+const recipeCache = {};
 
 //initializes the modal
 document.addEventListener('DOMContentLoaded', function () {
@@ -284,29 +284,42 @@ function showFoodDetails(food, index) {
     document.getElementById('modalFoodProtein').textContent = food.protein ? food.protein + ' g' : 'N/A';
     document.getElementById('modalFoodCarbs').textContent = food.carbs ? food.carbs + ' g' : 'N/A';
 
-
-    document.getElementById('recipeTitle').value = food.name || "";
+    document.getElementById('recipeTitle').value = "";
     document.getElementById('recipeIngredients').value = "";
     document.getElementById('recipeInstructions').value = "";
 
     const token = localStorage.getItem("token");
 
-    fetch(`http://localhost:8000/recipes/food/${food._id}`, {
-        headers: {
-            "Authorization": `Bearer ${token}`
-        }
-    })
+    if (recipeCache[food._id]) {
+        const cached = recipeCache[food._id];
+        document.getElementById('recipeTitle').value = cached.name || "";
+        document.getElementById('recipeIngredients').value = Array.isArray(cached.ingredients)
+          ? cached.ingredients.join(", ")
+          : cached.ingredients || "";
+        document.getElementById('recipeInstructions').value = cached.instructions || "";
+    } else {
+        fetch(`http://localhost:8000/recipes/food/${food._id}`, {
+            headers: {
+                "Authorization": `Bearer ${token}`
+            }
+        })
         .then(res => res.json())
         .then(recipe => {
-            if (recipe && recipe.title) {
-                document.getElementById('recipeTitle').value = recipe.title;
-                document.getElementById('recipeIngredients').value = recipe.ingredients;
-                document.getElementById('recipeInstructions').value = recipe.instructions;
+            if (recipe) {
+                recipeCache[food._id] = recipe;
+    
+                document.getElementById('recipeTitle').value = recipe.name || "";
+                document.getElementById('recipeIngredients').value = Array.isArray(recipe.ingredients)
+                  ? recipe.ingredients.join(", ")
+                  : recipe.ingredients || "";
+                document.getElementById('recipeInstructions').value = recipe.instructions || "";
             }
         })
         .catch(err => {
             console.warn("No recipe found or error loading recipe:", err);
         });
+    }
+    
 
     document.getElementById('modalEditButton').onclick = function () {
         editFood(index, food.name, food.calories);
@@ -361,12 +374,19 @@ async function saveRecipe() {
 
     if (response.ok) {
         alert("Recipe saved!");
+        
+        recipeCache[foodId] = {
+            food_id: foodId,
+            name: title,
+            ingredients,
+            instructions
+        };
+    
         titleEl.value = "";
         ingredientsEl.value = "";
         instructionsEl.value = "";
-    } else {
-        alert("Failed to save recipe.");
     }
+    
 }
 
 // checks if the user is an admin and shows the admin nav item
@@ -384,17 +404,7 @@ async function checkIfAdmin() {
   if (window.location.pathname !== "/login") {
     checkIfAdmin();
   }
-  
 
-
-window.logout = logout;
-
-// Logout
-function logout() {
-  localStorage.removeItem("token");
-  window.location.href = "/login";
-}
-window.logout = logout;
 
 // Admin check
 async function checkIfAdmin() {
@@ -460,4 +470,14 @@ async function loadRecipes() {
     container.innerHTML = `<p class="text-center w-100 text-danger">Error loading recipes.</p>`;
     console.error(err);
   }
+
+
+  window.logout = logout;
+
+// Logout
+function logout() {
+  localStorage.removeItem("token");
+  window.location.href = "/login";
+}
+window.logout = logout;
 }
