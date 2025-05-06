@@ -4,13 +4,56 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Calorie Tracker</title>
-
-  <link rel="stylesheet" href="/static/navbar.css">
+  <title>Profile</title>
   <link rel="stylesheet" href="/static/styles.css">
+  <link rel="stylesheet" href="/static/navbar.css">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
 
+    h1 {
+      color: #2c3e50;
+      margin-bottom: 20px;
+      width: 100%;
+      text-align: center;
+    }
 
+    .card {
+      border: none;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+    }
+
+    .card-header {
+      padding: 12px 20px;
+    }
+
+    .btn {
+      border-radius: 4px !important;
+      font-weight: 500;
+    }
+
+    .progress {
+      height: 10px;
+      border-radius: 5px;
+    }
+
+    .form-control {
+      border-radius: 4px;
+    }
+
+    #feedbackAlert {
+      width: 100%;
+      margin-bottom: 20px;
+    }
+  </style>
 </head>
 
 <body>
@@ -30,7 +73,7 @@
             <a class="nav-link" href="/recipes">Recipes</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="/profile">Profile</a>
+            <a class="nav-link active" href="/profile">Profile</a>
           </li>
           <li class="nav-item d-none" id="adminNavItem">
             <a class="nav-link" href="/admin">Admin</a>
@@ -42,34 +85,92 @@
       </div>
     </div>
   </nav>
-
   <h1><b>User Profile</b></h1>
-  <div class="container mt-4" style="max-width: 500px;">
-    <div class=" p-4 shadow-sm">
-      <p><strong>Username:</strong> <span id="profileUsername">Loading...</span></p>
-      <p><strong>Daily Calorie Target:</strong> <span id="profileTarget">Loading...</span></p>
-      <p><strong>Total Foods Logged:</strong> <span id="profileLogCount">Loading...</span></p>
-      <hr>
-      <form id="profileForm">
-        <div class="mb-3">
-          <label for="weight" class="form-label">Weight (lbs)</label>
-          <input type="number" step="0.1" id="weight" class="form-control" placeholder="e.g. 150" />
+  <div class="container mt-4">
+    <div id="feedbackAlert" class="alert alert-success d-none" role="alert"></div>
+    <div class="row">
+      <div class="col-md-6">
+        <div class="card mb-4">
+          <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Profile Information</h5>
+          </div>
+          <div class="card-body">
+            <div class="mb-3">
+              <label class="form-label">Username</label>
+              <div class="input-group mb-3">
+                <span class="input-group-text"><i class="fas fa-user"></i></span>
+                <input type="text" class="form-control" id="profileUsername" value="Loading..." readonly>
+              </div>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Daily Calorie Target</label>
+              <div class="input-group mb-3">
+                <span class="input-group-text"><i class="fas fa-bullseye"></i></span>
+                <input type="text" class="form-control" id="profileTarget" value="Loading..." readonly>
+              </div>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Total Foods Logged</label>
+              <div class="input-group mb-3">
+                <span class="input-group-text"><i class="fas fa-utensils"></i></span>
+                <input type="text" class="form-control" id="profileLogCount" value="Loading..." readonly>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="mb-3">
-          <label for="height" class="form-label">Height (inches)</label>
-          <input type="number" step="0.1" id="height" class="form-control" placeholder="e.g. 70" />
+      </div>
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-header bg-success text-white">
+            <h5 class="mb-0">Update Profile</h5>
+          </div>
+          <div class="card-body">
+            <form id="profileForm">
+              <div class="mb-3">
+                <label for="weight" class="form-label">Weight (lbs)</label>
+                <div class="input-group mb-3">
+                  <span class="input-group-text"><i class="fas fa-weight"></i></span>
+                  <input type="number" step="0.1" id="weight" class="form-control" placeholder="e.g. 150">
+                </div>
+              </div>
+              <div class="mb-3">
+                <label for="height" class="form-label">Height (inches)</label>
+                <div class="input-group mb-3">
+                  <span class="input-group-text"><i class="fas fa-ruler-vertical"></i></span>
+                  <input type="number" step="0.1" id="height" class="form-control" placeholder="e.g. 70">
+                </div>
+              </div>
+              <div class="mb-4">
+                <label class="form-label">BMI Status</label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="fas fa-calculator"></i></span>
+                  <input type="text" class="form-control" id="bmiValue" value="N/A" readonly>
+                </div>
+              </div>
+              <button type="submit" class="btn btn-success w-100">Update Profile</button>
+            </form>
+          </div>
         </div>
-
-        <div class="mb-3">
-          <label><strong>BMI:</strong></label>
-          <span id="bmiValue">N/A</span>
+        <div class="card mt-4">
+          <div class="card-header bg-info text-white">
+            <h5 class="mb-0">Health Insights</h5>
+          </div>
+          <div class="card-body">
+            <div class="mb-3">
+              <p><strong>BMI Category:</strong> <span id="bmiCategory">Not calculated</span></p>
+              <div class="progress">
+                <div id="bmiProgressBar" class="progress-bar bg-info" role="progressbar" style="width: 0%"
+                  aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+              </div>
+            </div>
+            <p class="text-muted small">A healthy BMI typically ranges from 18.5 to 24.9. This is just one health
+              indicator and should be considered alongside other factors.</p>
+          </div>
         </div>
-        <button type="submit" class="btn btn-primary w-100">Update Profile</button>
-      </form>
+      </div>
     </div>
   </div>
-
-
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', async () => {
       const token = localStorage.getItem("token");
@@ -77,30 +178,28 @@
         window.location.href = "/login";
         return;
       }
-
       const res = await fetch("/profile-data", {
         headers: { "Authorization": "Bearer " + token }
       });
-
       const data = await res.json();
-      document.getElementById("profileUsername").textContent = data.username;
-      document.getElementById("profileTarget").textContent = data.target || "Not Set";
-      document.getElementById("profileLogCount").textContent = data.logCount;
-
-      // Convert back from metric to imperial for display
+      document.getElementById("profileUsername").value = data.username;
+      document.getElementById("profileTarget").value = data.target || "Not Set";
+      document.getElementById("profileLogCount").value = data.logCount;
       document.getElementById("weight").value = data.weight ? (data.weight / 0.453592).toFixed(1) : '';
       document.getElementById("height").value = data.height ? (data.height / 0.0254).toFixed(1) : '';
-      document.getElementById("bmiValue").textContent = data.bmi !== null ? data.bmi : 'N/A';
-
+      updateBmiDisplay(data.bmi);
       document.getElementById("profileForm").addEventListener("submit", async (e) => {
         e.preventDefault();
         const weightLbs = parseFloat(document.getElementById("weight").value);
         const heightInches = parseFloat(document.getElementById("height").value);
-
+        // Calculate BMI for local display (before sending to server)
+        if (!isNaN(weightLbs) && !isNaN(heightInches) && heightInches > 0) {
+          const bmi = ((weightLbs / (heightInches * heightInches)) * 703).toFixed(1);
+          updateBmiDisplay(bmi);
+        }
         // Convert to metric before sending to backend
         const weightKg = weightLbs * 0.453592;
         const heightMeters = heightInches * 0.0254;
-
         const resp = await fetch("/profile-data", {
           method: "POST",
           headers: {
@@ -109,21 +208,62 @@
           },
           body: JSON.stringify({ weight: weightKg, height: heightMeters })
         });
-
+        const feedbackAlert = document.getElementById("feedbackAlert");
         if (resp.ok) {
-          alert("Profile updated!");
-          window.location.reload();
+          feedbackAlert.textContent = "Profile updated successfully!";
+          feedbackAlert.classList.remove("d-none", "alert-danger");
+          feedbackAlert.classList.add("alert-success");
+          setTimeout(() => {
+            feedbackAlert.classList.add("d-none");
+          }, 3000);
         } else {
-          alert("Failed to update profile.");
+          feedbackAlert.textContent = "Failed to update profile.";
+          feedbackAlert.classList.remove("d-none", "alert-success");
+          feedbackAlert.classList.add("alert-danger");
+          setTimeout(() => {
+            feedbackAlert.classList.add("d-none");
+          }, 3000);
         }
       });
     });
+    function updateBmiDisplay(bmi) {
+      const bmiValue = document.getElementById("bmiValue");
+      const bmiCategory = document.getElementById("bmiCategory");
+      const bmiProgressBar = document.getElementById("bmiProgressBar");
+      if (bmi === null || bmi === undefined || isNaN(bmi)) {
+        bmiValue.value = "N/A";
+        bmiCategory.textContent = "Not calculated";
+        bmiProgressBar.style.width = "0%";
+        return;
+      }
+      bmiValue.value = bmi;
+      let category, progressWidth, progressColor;
+      if (bmi < 18.5) {
+        category = "Underweight";
+        progressWidth = (bmi / 18.5) * 30;
+        progressColor = "bg-info";
+      } else if (bmi < 25) {
+        category = "Healthy weight";
+        progressWidth = 30 + ((bmi - 18.5) / 6.5) * 40;
+        progressColor = "bg-success";
+      } else if (bmi < 30) {
+        category = "Overweight";
+        progressWidth = 70 + ((bmi - 25) / 5) * 15;
+        progressColor = "bg-warning";
+      } else {
+        category = "Obese";
+        progressWidth = 85 + Math.min(((bmi - 30) / 10) * 15, 15);
+        progressColor = "bg-danger";
+      }
+      bmiCategory.textContent = category;
+      bmiProgressBar.style.width = `${progressWidth}%`;
+      bmiProgressBar.className = `progress-bar ${progressColor}`;
+    }
+    function logout() {
+      localStorage.removeItem("token");
+      window.location.href = "/login";
+    }
   </script>
-
-
-
-  <script src="static/main.js"></script>
-  <script src="static/profile.js"></script>
 </body>
 
 </html>
