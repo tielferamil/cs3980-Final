@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Depends, Request, Body
+from fastapi import FastAPI, HTTPException, Depends, Request, Body, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -409,3 +409,25 @@ async def delete_goal(
         raise HTTPException(status_code=404, detail="Goal not found")
     await goal.delete()
     return {"message": "Goal deleted"}
+
+# Delete recipe by ID
+@app.delete("/recipes/{recipe_id}")
+async def delete_recipe(recipe_id: str, user: User = Depends(get_current_user)):
+    try:
+        obj_id = ObjectId(recipe_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid recipe ID")
+
+    loop = asyncio.get_event_loop()
+    result = await loop.run_in_executor(
+        None,
+        lambda: recipes_collection.delete_one({
+            "_id": obj_id,
+            "user_id": str(user.id)
+        })
+    )
+
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Recipe not found")
+
+    return {"message": "Recipe deleted"}

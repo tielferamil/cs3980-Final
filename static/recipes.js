@@ -81,4 +81,3 @@ async function loadRecipes() {
   }
   
   window.deleteRecipe = deleteRecipe;
-  
