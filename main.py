@@ -116,7 +116,7 @@ async def start_db():
 # Signup Route
 @app.post("/signup")
 async def signup(user: UserSignup):
-    existing = await User.find_one(User.username == user.username)
+    existing = await User.find_one({"username": user.username})
     if existing:
         raise HTTPException(status_code=400, detail="Username already exists")
     hashed = hash_password(user.password)
