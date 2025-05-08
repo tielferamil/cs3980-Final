@@ -431,3 +431,35 @@ async def delete_recipe(recipe_id: str, user: User = Depends(get_current_user)):
         raise HTTPException(status_code=404, detail="Recipe not found")
 
     return {"message": "Recipe deleted"}
+
+# Promote user to admin
+@app.put("/admin/promote/{username}")
+async def promote_user(username: str, user: User = Depends(get_current_user)):
+    require_admin(user)
+    target = await User.find_one(User.username == username)
+    if not target:
+        raise HTTPException(status_code=404, detail="User not found")
+    target.is_admin = True
+    await target.save()
+    return {"message": f"User {username} promoted to admin"}
+
+# Demote user from admin
+@app.put("/admin/demote/{username}")
+async def demote_user(username: str, user: User = Depends(get_current_user)):
+    require_admin(user)
+    target = await User.find_one(User.username == username)
+    if not target:
+        raise HTTPException(status_code=404, detail="User not found")
+    target.is_admin = False
+    await target.save()
+    return {"message": f"User {username} demoted from admin"}
+
+# Delete a user from database
+@app.delete("/admin/delete/{username}")
+async def delete_user(username: str, user: User = Depends(get_current_user)):
+    require_admin(user)
+    target = await User.find_one(User.username == username)
+    if not target:
+        raise HTTPException(status_code=404, detail="User not found")
+    await target.delete()
+    return {"message": f"User {username} deleted"}

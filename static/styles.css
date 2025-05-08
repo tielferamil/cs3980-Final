@@ -184,37 +184,6 @@ button, .btn {
     background-color: #2980b9 !important;
 }
 
-.navbar-brand {
-    color: #09bd1b !important;
-    font-weight: 700 !important;
-    font-size: 1.6rem !important;
-    letter-spacing: -0.5px;
-    padding-left: 0.5rem;
-}
-
-.nav-link.active {
-    font-weight: 600;
-    color: #09bd1b !important;
-}
-
-#logoutButton {
-    background-color: #09bd1b;
-    color: white;
-    border: none;
-    padding: 8px 18px;
-    font-size: 14px;
-    font-weight: 500;
-    border-radius: 50px;
-    transition: all 0.2s ease;
-    margin-left: 10px;
-}
-
-#logoutButton:hover {
-    background-color: #079a16;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-}
-
 /* Card Styles */
 .card {
     border: none;

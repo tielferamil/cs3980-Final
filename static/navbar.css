@@ -15,7 +15,7 @@ nav.navbar {
     color: #09bd1b !important;
   }
   
-  #logoutButton {
+#logoutButton {
     background-color: #09bd1b;
     color: white;
     border: none;
@@ -25,10 +25,10 @@ nav.navbar {
     border-radius: 50px;
     transition: all 0.2s ease;
     margin-left: 10px;
-  }
-  
-  #logoutButton:hover {
+}
+
+#logoutButton:hover {
     background-color: #079a16;
     transform: translateY(-1px);
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-  }
+}
