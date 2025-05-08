@@ -23,6 +23,7 @@ from pydantic import BaseModel
 from typing import Optional
 from models import Goal, GoalCreate, GoalProgressUpdate
 import asyncio
+from logger import logger
 
 
 class ProfileUpdate(BaseModel):
@@ -122,6 +123,7 @@ async def signup(user: UserSignup):
     hashed = hash_password(user.password)
     new_user = User(username=user.username, hashed_password=hashed)
     await new_user.insert()
+    logger.info(f"New user signed up: {user.username}")
     return {"message": "User created"}
 
 
@@ -132,6 +134,7 @@ async def login(user: UserLogin):
     if not db_user or not verify_password(user.password, db_user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     token = create_access_token({"sub": str(db_user.id)})
+    logger.info(f"User logged in: {user.username}")
     return {"access_token": token, "token_type": "bearer"}
 
 
@@ -147,6 +150,7 @@ async def log_food(food: FoodLogCreate, user: User = Depends(get_current_user)):
         carbs=food.carbs,
     )
     await log.insert()
+    logger.info(f"Food logged: {food.name} for user {user.username}")
     return {"message": "Food logged"}
 
 
@@ -183,6 +187,7 @@ async def set_target(target: int = Body(...), user: User = Depends(get_current_u
         await existing.save()
     else:
         await CalorieTarget(user_id=user.id, target=target).insert()
+    logger.info(f"User {user.username} set target: {target}")
     return {"message": "Target set"}
 
 
@@ -205,8 +210,8 @@ async def delete_log(log_id: PydanticObjectId, user: User = Depends(get_current_
     log = await FoodLog.get(log_id)
     if not log or log.user_id != user.id:
         raise HTTPException(status_code=404, detail="Not found")
-
     await log.delete()
+    logger.info(f"Food log deleted: {log.name} for user {user.username}")
     return {"message": "Deleted"}
 
 
@@ -268,18 +273,6 @@ async def get_users(user: User = Depends(get_current_user)):
     return [{"username": user.username, "is_admin": user.is_admin} for user in users]
 
 
-# admin promotion
-@app.put("/admin/promote/{username}")
-async def promote_user(username: str, user: User = Depends(get_current_user)):
-    require_admin(user)
-    target = await User.find_one(User.username == username)
-    if not target:
-        raise HTTPException(status_code=404, detail="User not found")
-    target.is_admin = True
-    await target.save()
-    return {"message": f"User {username} promoted to admin"}
-
-
 # admin check route
 @app.get("/me")
 async def get_me(user: User = Depends(get_current_user)):
@@ -309,6 +302,7 @@ async def update_recipe_by_food(food_id: str, recipe: RecipeCreate, user: User =
         None,
         lambda: recipes_collection.replace_one({"_id": existing["_id"]}, updated)
     )
+    logger.info(f"Recipe updated for food_id: {food_id} by user {user.username}")
     return {"message": "Recipe updated"}
 
 
@@ -333,6 +327,7 @@ async def create_goal(goal: GoalCreate, user: User = Depends(get_current_user)):
         completed=False,
     )
     await new_goal.insert()
+    logger.info(f"New goal created: {goal.title} for user {user.username}")
     return {"message": "Goal created successfully", "id": str(new_goal.id)}
 
 
@@ -371,6 +366,7 @@ async def update_goal_progress(
     goal.progress = progress_update.progress
     goal.completed = progress_update.completed
     await goal.save()
+    logger.info(f"Goal progress updated: {goal.title} for user {user.username}, new progress: {goal.progress}")
     return {"message": "Goal progress updated"}
 
 
@@ -396,6 +392,7 @@ async def update_goal(
     )
     goal.completed = goal.progress >= 100
     await goal.save()
+    logger.info(f"Goal updated: {goal.title} for user {user.username}")
     return {"message": "Goal updated"}
 
 
@@ -408,6 +405,7 @@ async def delete_goal(
     if not goal or goal.user_id != user.id:
         raise HTTPException(status_code=404, detail="Goal not found")
     await goal.delete()
+    logger.info(f"Goal deleted: {goal.title} for user {user.username}")
     return {"message": "Goal deleted"}
 
 # Delete recipe by ID
@@ -429,7 +427,7 @@ async def delete_recipe(recipe_id: str, user: User = Depends(get_current_user)):
 
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Recipe not found")
-
+    logger.info(f"Recipe deleted: {recipe_id} for user {user.username}")
     return {"message": "Recipe deleted"}
 
 # Promote user to admin
@@ -441,6 +439,7 @@ async def promote_user(username: str, user: User = Depends(get_current_user)):
         raise HTTPException(status_code=404, detail="User not found")
     target.is_admin = True
     await target.save()
+    logger.info(f"User {username} promoted to admin by {user.username}")
     return {"message": f"User {username} promoted to admin"}
 
 # Demote user from admin
@@ -452,6 +451,7 @@ async def demote_user(username: str, user: User = Depends(get_current_user)):
         raise HTTPException(status_code=404, detail="User not found")
     target.is_admin = False
     await target.save()
+    logger.info(f"User {username} demoted from admin by {user.username}")
     return {"message": f"User {username} demoted from admin"}
 
 # Delete a user from database
@@ -462,4 +462,5 @@ async def delete_user(username: str, user: User = Depends(get_current_user)):
     if not target:
         raise HTTPException(status_code=404, detail="User not found")
     await target.delete()
+    logger.info(f"User {username} deleted by {user.username}")
     return {"message": f"User {username} deleted"}
