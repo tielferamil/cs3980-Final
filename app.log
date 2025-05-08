@@ -1,0 +1,15 @@
+2025-05-08 15:59:19,819: logger: INFO - info message
+2025-05-08 15:59:25,239: logger: INFO - User logged in: joey
+2025-05-08 15:59:25,556: logger: INFO - User joey retrieved food logs
+2025-05-08 15:59:25,835: logger: INFO - User joey retrieved food logs
+2025-05-08 15:59:30,806: logger: INFO - User jwroble@uiowa.edu promoted to admin by joey
+2025-05-08 16:00:10,877: logger: INFO - info message
+2025-05-08 16:00:15,418: logger: INFO - info message
+2025-05-08 16:00:21,757: logger: INFO - User testingman deleted by joey
+2025-05-08 16:01:13,643: logger: INFO - info message
+2025-05-08 16:01:17,867: logger: INFO - User joey retrieved food logs
+2025-05-08 16:01:18,041: logger: INFO - User joey retrieved food logs
+2025-05-08 16:01:21,407: logger: INFO - Food logged: Oreo for user joey
+2025-05-08 16:01:21,504: logger: INFO - User joey retrieved food logs
+2025-05-08 16:01:42,692: logger: INFO - info message
+2025-05-08 16:01:43,305: logger: INFO - Food log deleted: Oreo for user joey
