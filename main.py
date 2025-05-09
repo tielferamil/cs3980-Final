@@ -23,9 +23,6 @@ from pydantic import BaseModel
 from typing import Optional
 from models import Goal, GoalCreate, GoalProgressUpdate
 import asyncio
-from fastapi import File, UploadFile
-import os
-from fastapi.responses import FileResponse
 
 
 class ProfileUpdate(BaseModel):
@@ -125,6 +122,7 @@ async def signup(user: UserSignup):
     hashed = hash_password(user.password)
     new_user = User(username=user.username, hashed_password=hashed)
     await new_user.insert()
+    logger.info(f"New user signed up: {user.username}")
     return {"message": "User created"}
 
 
@@ -135,6 +133,7 @@ async def login(user: UserLogin):
     if not db_user or not verify_password(user.password, db_user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     token = create_access_token({"sub": str(db_user.id)})
+    logger.info(f"User logged in: {user.username}")
     return {"access_token": token, "token_type": "bearer"}
 
 
@@ -150,6 +149,7 @@ async def log_food(food: FoodLogCreate, user: User = Depends(get_current_user)):
         carbs=food.carbs,
     )
     await log.insert()
+    logger.info(f"Food logged: {food.name} for user {user.username}")
     return {"message": "Food logged"}
 
 
@@ -186,6 +186,7 @@ async def set_target(target: int = Body(...), user: User = Depends(get_current_u
         await existing.save()
     else:
         await CalorieTarget(user_id=user.id, target=target).insert()
+    logger.info(f"User {user.username} set target: {target}")
     return {"message": "Target set"}
 
 
@@ -208,8 +209,8 @@ async def delete_log(log_id: PydanticObjectId, user: User = Depends(get_current_
     log = await FoodLog.get(log_id)
     if not log or log.user_id != user.id:
         raise HTTPException(status_code=404, detail="Not found")
-
     await log.delete()
+    logger.info(f"Food log deleted: {log.name} for user {user.username}")
     return {"message": "Deleted"}
 
 
@@ -272,18 +273,6 @@ async def get_users(user: User = Depends(get_current_user)):
     return [{"username": user.username, "is_admin": user.is_admin} for user in users]
 
 
-# admin promotion
-@app.put("/admin/promote/{username}")
-async def promote_user(username: str, user: User = Depends(get_current_user)):
-    require_admin(user)
-    target = await User.find_one(User.username == username)
-    if not target:
-        raise HTTPException(status_code=404, detail="User not found")
-    target.is_admin = True
-    await target.save()
-    return {"message": f"User {username} promoted to admin"}
-
-
 # admin check route
 @app.get("/me")
 async def get_me(user: User = Depends(get_current_user)):
@@ -315,6 +304,7 @@ async def update_recipe_by_food(
     await loop.run_in_executor(
         None, lambda: recipes_collection.replace_one({"_id": existing["_id"]}, updated)
     )
+    logger.info(f"Recipe updated for food_id: {food_id} by user {user.username}")
     return {"message": "Recipe updated"}
 
 
@@ -337,6 +327,7 @@ async def create_goal(goal: GoalCreate, user: User = Depends(get_current_user)):
         completed=False,
     )
     await new_goal.insert()
+    logger.info(f"New goal created: {goal.title} for user {user.username}")
     return {"message": "Goal created successfully", "id": str(new_goal.id)}
 
 
@@ -375,6 +366,9 @@ async def update_goal_progress(
     goal.progress = progress_update.progress
     goal.completed = progress_update.completed
     await goal.save()
+    logger.info(
+        f"Goal progress updated: {goal.title} for user {user.username}, new progress: {goal.progress}"
+    )
     return {"message": "Goal progress updated"}
 
 
@@ -400,6 +394,7 @@ async def update_goal(
     )
     goal.completed = goal.progress >= 100
     await goal.save()
+    logger.info(f"Goal updated: {goal.title} for user {user.username}")
     return {"message": "Goal updated"}
 
 
@@ -412,6 +407,7 @@ async def delete_goal(
     if not goal or goal.user_id != user.id:
         raise HTTPException(status_code=404, detail="Goal not found")
     await goal.delete()
+    logger.info(f"Goal deleted: {goal.title} for user {user.username}")
     return {"message": "Goal deleted"}
 
 
@@ -431,46 +427,5 @@ async def delete_recipe(recipe_id: str, user: User = Depends(get_current_user)):
 
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Recipe not found")
-
+    logger.info(f"Recipe deleted: {recipe_id} for user {user.username}")
     return {"message": "Recipe deleted"}
-
-
-@app.post("/profile-picture")
-async def upload_profile_picture(
-    file: UploadFile = File(...), user: User = Depends(get_current_user)
-):
-    upload_dir = "static/uploads"
-    os.makedirs(upload_dir, exist_ok=True)
-
-    # Safe, unique filename
-    filename = f"{user.id}_{file.filename.replace(' ', '_')}"
-    file_path = os.path.join(upload_dir, filename)
-
-    with open(file_path, "wb") as f:
-        content = await file.read()
-        f.write(content)
-
-    # Save filename to Beanie user document
-    user.profile_picture = filename
-    await user.save()  # Beanie save!
-
-    return {"url": f"/static/uploads/{filename}"}
-
-
-@app.get("/profile-data")
-async def get_profile_data(user: User = Depends(get_current_user)):
-    log_count = await FoodLog.find(FoodLog.user_id == user.id).count()
-    target_doc = await CalorieTarget.find_one(CalorieTarget.user_id == user.id)
-    target = target_doc.target if target_doc else None
-    bmi = None
-    if user.weight and user.height and user.height > 0:
-        bmi = round(user.weight / (user.height**2), 2)
-    return {
-        "username": user.username,
-        "logCount": log_count,
-        "target": target,
-        "weight": user.weight,
-        "height": user.height,
-        "bmi": bmi,
-        "profile_picture": user.profile_picture,
-    }
