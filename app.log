@@ -13,3 +13,9 @@
 2025-05-08 16:01:21,504: logger: INFO - User joey retrieved food logs
 2025-05-08 16:01:42,692: logger: INFO - info message
 2025-05-08 16:01:43,305: logger: INFO - Food log deleted: Oreo for user joey
+2025-05-08 20:04:30,599: logger: INFO - info message
+2025-05-08 20:09:12,564: logger: INFO - info message
+2025-05-08 20:11:54,174: logger: INFO - info message
+2025-05-08 20:12:03,218: logger: INFO - User logged in: feramil
+2025-05-08 20:14:29,180: logger: INFO - info message
+2025-05-08 20:19:27,493: logger: INFO - info message

@@ -23,11 +23,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById("height").value = data.height ? (data.height / 0.0254).toFixed(1) : '';
   document.getElementById("bmiValue").textContent = data.bmi !== null ? data.bmi : 'N/A';
 
-  if (data.profile_picture) {
-    document.getElementById("profilePreview").src = `/static/uploads/${data.profile_picture}`;
-  }
-
-
   document.getElementById("profileForm").addEventListener("submit", async (e) => {
     e.preventDefault();
     const weightLbs = parseFloat(document.getElementById("weight").value);

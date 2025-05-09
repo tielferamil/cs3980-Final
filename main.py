@@ -23,6 +23,8 @@ from pydantic import BaseModel
 from typing import Optional
 from models import Goal, GoalCreate, GoalProgressUpdate
 import asyncio
+from logger import logger
+from fastapi import File, UploadFile
 
 
 class ProfileUpdate(BaseModel):
@@ -81,6 +83,7 @@ async def get_profile_data(user: User = Depends(get_current_user)):
         "weight": user.weight,
         "height": user.height,
         "bmi": bmi,
+        "profile_picture": user.profile_picture,
     }
 
 
@@ -429,3 +432,23 @@ async def delete_recipe(recipe_id: str, user: User = Depends(get_current_user)):
         raise HTTPException(status_code=404, detail="Recipe not found")
     logger.info(f"Recipe deleted: {recipe_id} for user {user.username}")
     return {"message": "Recipe deleted"}
+
+
+@app.post("/profile-picture")
+async def upload_profile_picture(
+    file: UploadFile = File(...), user: User = Depends(get_current_user)
+):
+    upload_dir = "static/uploads"
+    os.makedirs(upload_dir, exist_ok=True)
+
+    filename = f"{user.id}_{file.filename.replace(' ', '_')}"
+    file_path = os.path.join(upload_dir, filename)
+
+    with open(file_path, "wb") as f:
+        content = await file.read()
+        f.write(content)
+
+    user.profile_picture = filename
+    await user.save()
+
+    return {"url": f"/static/uploads/{filename}"}
