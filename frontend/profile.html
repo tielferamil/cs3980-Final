@@ -52,6 +52,12 @@
           </div>
           <div class="card-body">
             <div class="mb-2">
+              <label for="profilePic" class="form-label">Profile Picture</label>
+              <input type="file" id="profilePic" class="form-control" accept="image/*">
+              <img id="profilePreview" src="/static/default-avatar.png" alt="Profile Preview" class="mt-2 rounded"
+                style="max-width: 150px;">
+            </div>
+            <div class="mb-2">
               <label class="form-label">Username</label>
               <div class="input-group">
                 <span class="input-group-text"><i class="fas fa-user"></i></span>
@@ -75,7 +81,6 @@
           </div>
         </div>
       </div>
-
       <div class="col-md-6 d-flex flex-column gap-2">
         <div class="card">
           <div class="card-header bg-success text-white">
@@ -133,99 +138,124 @@
 
 </html>
 
-  <script>
-    document.addEventListener('DOMContentLoaded', async () => {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        window.location.href = "/login";
-        return;
-      }
-      const res = await fetch("/profile-data", {
-        headers: { "Authorization": "Bearer " + token }
-      });
-      const data = await res.json();
-      document.getElementById("profileUsername").value = data.username;
-      document.getElementById("profileTarget").value = data.target || "Not Set";
-      document.getElementById("profileLogCount").value = data.logCount;
-      document.getElementById("weight").value = data.weight ? (data.weight / 0.453592).toFixed(1) : '';
-      document.getElementById("height").value = data.height ? (data.height / 0.0254).toFixed(1) : '';
-      updateBmiDisplay(data.bmi);
-      document.getElementById("profileForm").addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const weightLbs = parseFloat(document.getElementById("weight").value);
-        const heightInches = parseFloat(document.getElementById("height").value);
-        // Calculate BMI for local display (before sending to server)
-        if (!isNaN(weightLbs) && !isNaN(heightInches) && heightInches > 0) {
-          const bmi = ((weightLbs / (heightInches * heightInches)) * 703).toFixed(1);
-          updateBmiDisplay(bmi);
-        }
-        // Convert to metric before sending to backend
-        const weightKg = weightLbs * 0.453592;
-        const heightMeters = heightInches * 0.0254;
-        const resp = await fetch("/profile-data", {
-          method: "POST",
-          headers: {
-            "Authorization": "Bearer " + token,
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ weight: weightKg, height: heightMeters })
-        });
-        const feedbackAlert = document.getElementById("feedbackAlert");
-        if (resp.ok) {
-          feedbackAlert.textContent = "Profile updated successfully!";
-          feedbackAlert.classList.remove("d-none", "alert-danger");
-          feedbackAlert.classList.add("alert-success");
-          setTimeout(() => {
-            feedbackAlert.classList.add("d-none");
-          }, 3000);
-        } else {
-          feedbackAlert.textContent = "Failed to update profile.";
-          feedbackAlert.classList.remove("d-none", "alert-success");
-          feedbackAlert.classList.add("alert-danger");
-          setTimeout(() => {
-            feedbackAlert.classList.add("d-none");
-          }, 3000);
-        }
-      });
-    });
-    function updateBmiDisplay(bmi) {
-      const bmiValue = document.getElementById("bmiValue");
-      const bmiCategory = document.getElementById("bmiCategory");
-      const bmiProgressBar = document.getElementById("bmiProgressBar");
-      if (bmi === null || bmi === undefined || isNaN(bmi)) {
-        bmiValue.value = "N/A";
-        bmiCategory.textContent = "Not calculated";
-        bmiProgressBar.style.width = "0%";
-        return;
-      }
-      bmiValue.value = bmi;
-      let category, progressWidth, progressColor;
-      if (bmi < 18.5) {
-        category = "Underweight";
-        progressWidth = (bmi / 18.5) * 30;
-        progressColor = "bg-info";
-      } else if (bmi < 25) {
-        category = "Healthy weight";
-        progressWidth = 30 + ((bmi - 18.5) / 6.5) * 40;
-        progressColor = "bg-success";
-      } else if (bmi < 30) {
-        category = "Overweight";
-        progressWidth = 70 + ((bmi - 25) / 5) * 15;
-        progressColor = "bg-warning";
-      } else {
-        category = "Obese";
-        progressWidth = 85 + Math.min(((bmi - 30) / 10) * 15, 15);
-        progressColor = "bg-danger";
-      }
-      bmiCategory.textContent = category;
-      bmiProgressBar.style.width = `${progressWidth}%`;
-      bmiProgressBar.className = `progress-bar ${progressColor}`;
-    }
-    function logout() {
-      localStorage.removeItem("token");
+<script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
       window.location.href = "/login";
+      return;
     }
-  </script>
+    const res = await fetch("/profile-data", {
+      headers: { "Authorization": "Bearer " + token }
+    });
+    const data = await res.json();
+    document.getElementById("profileUsername").value = data.username;
+    document.getElementById("profileTarget").value = data.target || "Not Set";
+    document.getElementById("profileLogCount").value = data.logCount;
+    document.getElementById("weight").value = data.weight ? (data.weight / 0.453592).toFixed(1) : '';
+    document.getElementById("height").value = data.height ? (data.height / 0.0254).toFixed(1) : '';
+    updateBmiDisplay(data.bmi);
+    document.getElementById("profileForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const weightLbs = parseFloat(document.getElementById("weight").value);
+      const heightInches = parseFloat(document.getElementById("height").value);
+      // Calculate BMI for local display (before sending to server)
+      if (!isNaN(weightLbs) && !isNaN(heightInches) && heightInches > 0) {
+        const bmi = ((weightLbs / (heightInches * heightInches)) * 703).toFixed(1);
+        updateBmiDisplay(bmi);
+      }
+      // Convert to metric before sending to backend
+      const weightKg = weightLbs * 0.453592;
+      const heightMeters = heightInches * 0.0254;
+      const resp = await fetch("/profile-data", {
+        method: "POST",
+        headers: {
+          "Authorization": "Bearer " + token,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ weight: weightKg, height: heightMeters })
+      });
+      const feedbackAlert = document.getElementById("feedbackAlert");
+      if (resp.ok) {
+        feedbackAlert.textContent = "Profile updated successfully!";
+        feedbackAlert.classList.remove("d-none", "alert-danger");
+        feedbackAlert.classList.add("alert-success");
+        setTimeout(() => {
+          feedbackAlert.classList.add("d-none");
+        }, 3000);
+      } else {
+        feedbackAlert.textContent = "Failed to update profile.";
+        feedbackAlert.classList.remove("d-none", "alert-success");
+        feedbackAlert.classList.add("alert-danger");
+        setTimeout(() => {
+          feedbackAlert.classList.add("d-none");
+        }, 3000);
+      }
+    });
+  });
+  function updateBmiDisplay(bmi) {
+    const bmiValue = document.getElementById("bmiValue");
+    const bmiCategory = document.getElementById("bmiCategory");
+    const bmiProgressBar = document.getElementById("bmiProgressBar");
+    if (bmi === null || bmi === undefined || isNaN(bmi)) {
+      bmiValue.value = "N/A";
+      bmiCategory.textContent = "Not calculated";
+      bmiProgressBar.style.width = "0%";
+      return;
+    }
+    bmiValue.value = bmi;
+    let category, progressWidth, progressColor;
+    if (bmi < 18.5) {
+      category = "Underweight";
+      progressWidth = (bmi / 18.5) * 30;
+      progressColor = "bg-info";
+    } else if (bmi < 25) {
+      category = "Healthy weight";
+      progressWidth = 30 + ((bmi - 18.5) / 6.5) * 40;
+      progressColor = "bg-success";
+    } else if (bmi < 30) {
+      category = "Overweight";
+      progressWidth = 70 + ((bmi - 25) / 5) * 15;
+      progressColor = "bg-warning";
+    } else {
+      category = "Obese";
+      progressWidth = 85 + Math.min(((bmi - 30) / 10) * 15, 15);
+      progressColor = "bg-danger";
+    }
+    bmiCategory.textContent = category;
+    bmiProgressBar.style.width = `${progressWidth}%`;
+    bmiProgressBar.className = `progress-bar ${progressColor}`;
+    document.getElementById("profilePic").addEventListener("change", async (event) => {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const token = localStorage.getItem("token");
+
+      const response = await fetch("/profile-picture", {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer " + token
+        },
+        body: formData
+      });
+
+      const result = await response.json();
+      if (response.ok) {
+        document.getElementById("profilePreview").src = result.url;
+      } else {
+        alert("Failed to upload profile picture");
+      }
+    });
+
+  }
+  function logout() {
+    localStorage.removeItem("token");
+    window.location.href = "/login";
+  }
+</script>
 </body>
 
 </html>

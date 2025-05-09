@@ -87,5 +87,5 @@ async function deleteRecipe(recipeId) {
   }
 }
 
-  
-  window.deleteRecipe = deleteRecipe;
+
+window.deleteRecipe = deleteRecipe;

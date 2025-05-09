@@ -23,6 +23,9 @@ from pydantic import BaseModel
 from typing import Optional
 from models import Goal, GoalCreate, GoalProgressUpdate
 import asyncio
+from fastapi import File, UploadFile
+import os
+from fastapi.responses import FileResponse
 
 
 class ProfileUpdate(BaseModel):
@@ -217,8 +220,7 @@ async def create_recipe(recipe: RecipeCreate, user: User = Depends(get_current_u
     recipe_dict = recipe.dict()
     recipe_dict["user_id"] = str(user.id)
     result = await loop.run_in_executor(
-        None,
-        lambda: recipes_collection.insert_one(recipe_dict)
+        None, lambda: recipes_collection.insert_one(recipe_dict)
     )
     return {"id": str(result.inserted_id)}
 
@@ -239,7 +241,9 @@ async def get_recipe_by_food(food_id: str, user: User = Depends(get_current_user
     loop = asyncio.get_event_loop()
     recipe = await loop.run_in_executor(
         None,
-        lambda: recipes_collection.find_one({"food_id": food_id, "user_id": str(user.id)})
+        lambda: recipes_collection.find_one(
+            {"food_id": food_id, "user_id": str(user.id)}
+        ),
     )
     if recipe:
         recipe["_id"] = str(recipe["_id"])
@@ -286,13 +290,16 @@ async def get_me(user: User = Depends(get_current_user)):
     return {"username": user.username, "is_admin": user.is_admin}
 
 
-
 @app.put("/recipes/food/{food_id}")
-async def update_recipe_by_food(food_id: str, recipe: RecipeCreate, user: User = Depends(get_current_user)):
+async def update_recipe_by_food(
+    food_id: str, recipe: RecipeCreate, user: User = Depends(get_current_user)
+):
     loop = asyncio.get_event_loop()
     existing = await loop.run_in_executor(
         None,
-        lambda: recipes_collection.find_one({"food_id": food_id, "user_id": str(user.id)})
+        lambda: recipes_collection.find_one(
+            {"food_id": food_id, "user_id": str(user.id)}
+        ),
     )
     if not existing:
         raise HTTPException(status_code=404, detail="Recipe not found")
@@ -306,12 +313,9 @@ async def update_recipe_by_food(food_id: str, recipe: RecipeCreate, user: User =
     }
 
     await loop.run_in_executor(
-        None,
-        lambda: recipes_collection.replace_one({"_id": existing["_id"]}, updated)
+        None, lambda: recipes_collection.replace_one({"_id": existing["_id"]}, updated)
     )
     return {"message": "Recipe updated"}
-
-
 
 
 @app.post("/goals/create")
@@ -410,6 +414,7 @@ async def delete_goal(
     await goal.delete()
     return {"message": "Goal deleted"}
 
+
 # Delete recipe by ID
 @app.delete("/recipes/{recipe_id}")
 async def delete_recipe(recipe_id: str, user: User = Depends(get_current_user)):
@@ -421,13 +426,51 @@ async def delete_recipe(recipe_id: str, user: User = Depends(get_current_user)):
     loop = asyncio.get_event_loop()
     result = await loop.run_in_executor(
         None,
-        lambda: recipes_collection.delete_one({
-            "_id": obj_id,
-            "user_id": str(user.id)
-        })
+        lambda: recipes_collection.delete_one({"_id": obj_id, "user_id": str(user.id)}),
     )
 
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Recipe not found")
 
     return {"message": "Recipe deleted"}
+
+
+@app.post("/profile-picture")
+async def upload_profile_picture(
+    file: UploadFile = File(...), user: User = Depends(get_current_user)
+):
+    upload_dir = "static/uploads"
+    os.makedirs(upload_dir, exist_ok=True)
+
+    # Safe, unique filename
+    filename = f"{user.id}_{file.filename.replace(' ', '_')}"
+    file_path = os.path.join(upload_dir, filename)
+
+    with open(file_path, "wb") as f:
+        content = await file.read()
+        f.write(content)
+
+    # Save filename to Beanie user document
+    user.profile_picture = filename
+    await user.save()  # Beanie save!
+
+    return {"url": f"/static/uploads/{filename}"}
+
+
+@app.get("/profile-data")
+async def get_profile_data(user: User = Depends(get_current_user)):
+    log_count = await FoodLog.find(FoodLog.user_id == user.id).count()
+    target_doc = await CalorieTarget.find_one(CalorieTarget.user_id == user.id)
+    target = target_doc.target if target_doc else None
+    bmi = None
+    if user.weight and user.height and user.height > 0:
+        bmi = round(user.weight / (user.height**2), 2)
+    return {
+        "username": user.username,
+        "logCount": log_count,
+        "target": target,
+        "weight": user.weight,
+        "height": user.height,
+        "bmi": bmi,
+        "profile_picture": user.profile_picture,
+    }

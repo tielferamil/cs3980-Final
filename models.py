@@ -10,6 +10,7 @@ class User(Document):
     is_admin: bool = False  # Added from repo version
     weight: Optional[float] = None  # in kilograms
     height: Optional[float] = None
+    profile_picture: Optional[str] = None
 
     class Settings:
         name = "users"  # MongoDB collection name
